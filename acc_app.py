@@ -4,7 +4,7 @@ import pandas as pd
 # 1. Pagina Configuratie
 st.set_page_config(page_title="ACC Setup Master v9.14", layout="wide")
 
-# Visuele styling
+# Alleen visuele styling, geen wijziging in werking
 st.markdown("""
     <style>
     .stTabs [data-baseweb="tab-list"] { gap: 8px; }
@@ -12,15 +12,15 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 2. DATABASE (Volledig v9.11)
+# 2. DATABASE (Volledig hersteld naar v9.11)
 cars_db = {
     "Ferrari 296 GT3": {"bb": 54.2, "diff": 80, "steer": 13.0, "wr_f": 160, "wr_r": 130, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.12, "caster": 12.5, "tips": "Focus op aero-rake."},
-    "Porsche 911 GT3 R (992)": {"bb": 50.2, "diff": 120, "steer": 12.0, "wr_f": 190, "wr_r": 150, "f_cam": -3.8, "r_cam": -3.2, "f_toe": -0.04, "r_toe": 0.20, "caster": 13.2, "tips": "Motor achterin; pas op voor lift-off oversteer."},
-    "BMW M4 GT3": {"bb": 57.5, "diff": 40, "steer": 14.0, "wr_f": 150, "wr_r": 120, "f_cam": -3.2, "r_cam": -2.8, "f_toe": 0.05, "r_toe": 0.10, "caster": 11.8, "tips": "Stabiel over curbs."},
+    "Porsche 911 GT3 R (992)": {"bb": 50.2, "diff": 120, "steer": 12.0, "wr_f": 190, "wr_r": 150, "f_cam": -3.8, "r_cam": -3.2, "f_toe": -0.04, "r_toe": 0.20, "caster": 13.2, "tips": "Motor achterin; wees voorzichtig met lift-off oversteer."},
+    "BMW M4 GT3": {"bb": 57.5, "diff": 40, "steer": 14.0, "wr_f": 150, "wr_r": 120, "f_cam": -3.2, "r_cam": -2.8, "f_toe": 0.05, "r_toe": 0.10, "caster": 11.8, "tips": "Stabiel platform; uitstekend over de curbs."},
     "Lamborghini EVO2": {"bb": 55.2, "diff": 90, "steer": 13.0, "wr_f": 165, "wr_r": 135, "f_cam": -3.6, "r_cam": -3.1, "f_toe": 0.06, "r_toe": 0.14, "caster": 12.8, "tips": "Veel mechanische grip."},
     "McLaren 720S EVO": {"bb": 53.2, "diff": 70, "steer": 13.0, "wr_f": 155, "wr_r": 125, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.10, "caster": 12.0, "tips": "Zeer aero-gevoelig."},
-    "Mercedes AMG EVO": {"bb": 56.8, "diff": 65, "steer": 14.0, "wr_f": 170, "wr_r": 140, "f_cam": -3.4, "r_cam": -2.9, "f_toe": 0.07, "r_toe": 0.12, "caster": 13.5, "tips": "Focus op tractie."},
-    "Audi R8 EVO II": {"bb": 54.0, "diff": 110, "steer": 13.0, "wr_f": 160, "wr_r": 130, "f_cam": -3.7, "r_cam": -3.1, "f_toe": 0.06, "r_toe": 0.11, "caster": 12.4, "tips": "Snel maar veeleisend."},
+    "Mercedes AMG EVO": {"bb": 56.8, "diff": 65, "steer": 14.0, "wr_f": 170, "wr_r": 140, "f_cam": "-3.4", "r_cam": -2.9, "f_toe": 0.07, "r_toe": 0.12, "caster": 13.5, "tips": "Focus op tractie."},
+    "Audi R8 EVO II": {"bb": 54.0, "diff": 110, "steer": 13.0, "wr_f": 160, "wr_r": 130, "f_cam": "-3.7", "r_cam": -3.1, "f_toe": 0.06, "r_toe": 0.11, "caster": 12.4, "tips": "Snel maar veeleisend."},
     "Aston Martin EVO": {"bb": 56.2, "diff": 55, "steer": 14.0, "wr_f": 155, "wr_r": 125, "f_cam": -3.3, "r_cam": -2.8, "f_toe": 0.06, "r_toe": 0.10, "caster": 12.2, "tips": "Zeer vergevingsgezind."},
     "Ford Mustang GT3": {"bb": 57.0, "diff": 50, "steer": 14.0, "wr_f": 160, "wr_r": 130, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.13, "caster": 12.0, "tips": "Veel koppel."},
     "Corvette Z06 GT3.R": {"bb": 54.8, "diff": 75, "steer": 13.0, "wr_f": 160, "wr_r": 130, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.12, "caster": 12.6, "tips": "Goede balans."}
@@ -44,7 +44,7 @@ with col_c:
     all_circuits = sorted([c for sub in circuits_db.values() for c in sub])
     circuit = st.selectbox("📍 Kies Circuit:", all_circuits)
 
-# ENGINEER LOGICA
+# ENGINEER LOGICA (Volledig v9.11)
 car = cars_db[auto]
 ctype = next((k for k, v in circuits_db.items() if circuit in v), "High Downforce")
 
@@ -68,10 +68,10 @@ if klacht != "Geen":
 st.sidebar.divider()
 st.sidebar.info(f"💡 **Tip:** {car['tips']}")
 
-# 5. TABS
+# 5. TABS (Structuur v9.11 behouden, subtiele kleur toegevoegd)
 tabs = st.tabs([":blue[🛞 Tyres]", "⚡ Electronics", "⛽ Fuel", ":violet[⚙️ Mechanical]", "☁️ Dampers", ":red[✈️ Aero]"])
 
-with tabs[0]:
+with tabs[0]: # TYRES & ALIGNMENT
     m1, m2 = st.columns(2)
     m1.metric("Target PSI", psi)
     m2.metric("Caster", f"{car['caster']}°")
@@ -89,16 +89,16 @@ with tabs[0]:
         st.text_input("Rear Toe", str(car["r_toe"]), key=f"r_t_{ukey}")
         st.text_input("Rear Camber", str(car["r_cam"]), key=f"r_c_{ukey}")
 
-with tabs[1]:
+with tabs[1]: # ELECTRONICS
     st.text_input("TC1", "3", key=f"tc1_{ukey}")
     st.text_input("ABS", "3", key=f"abs_{ukey}")
 
-with tabs[2]:
+with tabs[2]: # FUEL & BRAKES (HERSTELD!)
     st.text_input("Fuel (Litre)", "62", key=f"fuel_{ukey}")
     st.text_input("Brake Duct Front", bduct, key=f"bdf_{ukey}")
     st.text_input("Brake Duct Rear", bduct, key=f"bdr_{ukey}")
 
-with tabs[3]:
+with tabs[3]: # MECHANICAL GRIP (HERSTELD!)
     mc1, mc2 = st.columns(2)
     with mc1:
         st.text_input("Front ARB", arb_f, key=f"farb_{ukey}")
@@ -108,7 +108,7 @@ with tabs[3]:
         st.text_input("Rear ARB", arb_r, key=f"rarb_{ukey}")
         st.text_input("Preload Diff", str(car["diff"]), key=f"diff_{ukey}")
 
-with tabs[4]:
+with tabs[4]: # DAMPERS
     dc1, dc2 = st.columns(2)
     with dc1:
         st.text_input("Bump LF", damp[0], key=f"blf_{ukey}")
@@ -117,7 +117,7 @@ with tabs[4]:
         st.text_input("Rebound LR", damp[2], key=f"rlr_{ukey}")
         st.text_input("Fast Rebound LR", damp[3], key=f"frlr_{ukey}")
 
-with tabs[5]:
+with tabs[5]: # AERO (HERSTELD!)
     ac1, ac2 = st.columns(2)
     with ac1:
         st.metric("Splitter", spl)
@@ -127,7 +127,7 @@ with tabs[5]:
         st.text_input("Ride Height Rear", rh_r, key=f"rhr_{ukey}")
         st.text_input("Rear Wing", wing, key=f"wing_{ukey}")
 
-# 6. OPSLAG & EXPORT
+# 6. OPSLAG & EXPORT (Layout v9.10/v9.11 behouden)
 st.divider()
 col_btn1, col_btn2 = st.columns([1, 4])
 with col_btn1:
@@ -142,7 +142,7 @@ if save_btn:
         "RH_F": rh_f, "RH_R": rh_r
     }
     st.session_state['history'].append(new_setup)
-    st.success("Opgeslagen!")
+    st.success(f"Opgeslagen!")
 
 if st.session_state['history']:
     df = pd.DataFrame(st.session_state['history'])
@@ -150,4 +150,4 @@ if st.session_state['history']:
     with col_btn2:
         st.download_button(label="📥 Download Database (CSV)", data=csv, file_name='acc_setups.csv', mime='text/csv')
     st.subheader("📋 Opgeslagen Setup Database")
-    st.table(df)
+    st.table(df) # Terug naar de stabiele tabel-weergave
