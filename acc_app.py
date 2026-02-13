@@ -4,7 +4,7 @@ import pandas as pd
 # 1. Pagina Configuratie
 st.set_page_config(page_title="ACC Setup Master v9.9", layout="wide")
 
-# 2. DATABASE: Volledige geometrie en basiswaarden per auto
+# 2. DATABASE: Geometrie en basiswaarden per auto
 cars_db = {
     "Ferrari 296 GT3": {"bb": 54.2, "diff": 80, "steer": 13.0, "wr_f": 160, "wr_r": 130, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.12, "caster": 12.5, "tips": "Focus op aero-rake."},
     "Porsche 911 GT3 R (992)": {"bb": 50.2, "diff": 120, "steer": 12.0, "wr_f": 190, "wr_r": 150, "f_cam": -3.8, "r_cam": -3.2, "f_toe": -0.04, "r_toe": 0.20, "caster": 13.2, "tips": "Motor achterin, wees voorzichtig."},
@@ -28,7 +28,7 @@ if 'history' not in st.session_state:
     st.session_state['history'] = []
 
 # 3. SELECTIE
-st.title("🏎️ ACC Setup Master v9.9")
+st.title("🏎️ ACC Setup Master v9.9 - Aero Fix")
 col_a, col_c = st.columns(2)
 with col_a:
     auto = st.selectbox("🚗 Kies Auto:", list(cars_db.keys()))
@@ -36,7 +36,7 @@ with col_c:
     all_circuits = sorted([c for sub in circuits_db.values() for c in sub])
     circuit = st.selectbox("📍 Kies Circuit:", all_circuits)
 
-# ENGINEER LOGICA
+# ENGINEER LOGICA (Berekeningen)
 car = cars_db[auto]
 ctype = next((k for k, v in circuits_db.items() if circuit in v), "High Downforce")
 
@@ -104,7 +104,7 @@ with tabs[4]: # DAMPERS
         st.text_input("Rebound LR", damp[2], key=f"rlr_{ukey}")
         st.text_input("Fast Rebound LR", damp[3], key=f"frlr_{ukey}")
 
-with tabs[5]: # AERO (NU MET SPLITTER)
+with tabs[5]: # AERO (NU CORRECT GEKOPPELD)
     ac1, ac2 = st.columns(2)
     with ac1:
         st.write("**Front Aero**")
@@ -115,14 +115,14 @@ with tabs[5]: # AERO (NU MET SPLITTER)
         st.text_input("Ride Height Rear", rh_r, key=f"rhr_{ukey}")
         st.text_input("Rear Wing", wing, key=f"wing_{ukey}")
 
-# 6. OPSLAG & VOLLEDIGE EXPORT
+# 6. OPSLAG & EXPORT
 st.divider()
 if st.button("💾 Sla Setup op"):
     new_setup = {
         "Auto": auto, "Circuit": circuit, "PSI": psi, "Wing": wing, "Splitter": spl,
         "BB": car["bb"] + bb_mod, "F_Cam": car["f_cam"], "R_Cam": car["r_cam"],
         "F_Toe": car["f_toe"], "R_Toe": car["r_toe"], "Caster": car["caster"],
-        "F_ARB": arb_f, "R_ARB": arb_r, "Diff": car["diff"], "RH_F": rh_f, "RH_R": rh_r
+        "F_ARB": arb_f, "R_ARB": arb_r, "RH_F": rh_f, "RH_R": rh_r
     }
     st.session_state['history'].append(new_setup)
     st.success(f"Setup voor {auto} op {circuit} toegevoegd!")
@@ -132,4 +132,4 @@ if st.session_state['history']:
     df = pd.DataFrame(st.session_state['history'])
     st.table(df) 
     csv = df.to_csv(index=False).encode('utf-8')
-    st.download_button(label="📥 Download Database (CSV)", data=csv, file_name='acc_setups_v99.csv', mime='text/csv')
+    st.download_button(label="📥 Download Database (CSV)", data=csv, file_name='acc_setups.csv', mime='text/csv')
