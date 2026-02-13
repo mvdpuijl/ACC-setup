@@ -1,9 +1,10 @@
 import streamlit as st
+import pandas as pd
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.1", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.2", layout="wide")
 
-# 2. DATABASE: Auto-specifieke basiswaarden
+# 2. DATABASE
 cars_db = {
     "Ferrari 296 GT3": {"bb": 54.2, "diff": 80, "steer": 13.0, "wr_f": 160, "wr_r": 130, "cam": -3.5, "toe": 0.06},
     "Porsche 911 GT3 R (992)": {"bb": 50.2, "diff": 120, "steer": 12.0, "wr_f": 190, "wr_r": 150, "cam": -3.8, "toe": -0.04},
@@ -17,15 +18,17 @@ cars_db = {
     "Corvette Z06 GT3.R": {"bb": 54.8, "diff": 75, "steer": 13.0, "wr_f": 160, "wr_r": 130, "cam": -3.5, "toe": 0.06}
 }
 
-# DATABASE: ALLE CIRCUITS (25+)
 circuits_db = {
     "High Downforce": ["Spa-Francorchamps", "Zandvoort", "Kyalami", "Barcelona", "Hungaroring", "Suzuka", "Donington Park", "Oulton Park", "Misano", "Valencia", "Nürburgring"],
     "Low Downforce": ["Monza", "Paul Ricard", "Bathurst", "Silverstone", "Indianapolis", "Jeddah"],
     "Street/Bumpy": ["Zolder", "Mount Panorama", "Laguna Seca", "Imola", "Snetterton", "Watkins Glen", "Red Bull Ring", "Magny-Cours"]
 }
 
+if 'history' not in st.session_state:
+    st.session_state['history'] = []
+
 # 3. Selectie
-st.title("🏎️ ACC Setup Master v9.1 - Volledige Versie")
+st.title("🏎️ ACC Setup Master v9.2")
 col_a, col_c = st.columns(2)
 with col_a:
     auto = st.selectbox("🚗 Kies Auto:", list(cars_db.keys()))
@@ -33,94 +36,85 @@ with col_c:
     all_circuits = sorted([c for sub in circuits_db.values() for c in sub])
     circuit = st.selectbox("📍 Kies Circuit:", all_circuits)
 
-# --- ENGINEER LOGICA ---
+# ENGINEER LOGICA
 car = cars_db[auto]
 ctype = next((k for k, v in circuits_db.items() if circuit in v), "High Downforce")
 
-# Bereken waarden op basis van categorie
 if ctype == "Low Downforce":
     psi, wing, bb_mod, arb_f, arb_r = "26.2", "2", 1.5, 5, 1
-    damp = ["4", "9", "7", "11"]
+    damp, rh_f, rh_r = ["4", "9", "7", "11"], "45", "62"
 elif ctype == "Street/Bumpy":
     psi, wing, bb_mod, arb_f, arb_r = "26.6", "8", -0.5, 3, 2
-    damp = ["8", "15", "6", "10"]
-else: # High Downforce
+    damp, rh_f, rh_r = ["8", "15", "6", "10"], "52", "75"
+else:
     psi, wing, bb_mod, arb_f, arb_r = "26.8", "11", 0.0, 4, 3
-    damp = ["5", "10", "8", "12"]
+    damp, rh_f, rh_r = ["5", "10", "8", "12"], "48", "68"
 
-# Unieke ID voor refresh
-ukey = f"v91final_{auto}_{circuit}".replace(" ", "_").replace(".", "").replace("-", "")
+ukey = f"v92_{auto}_{circuit}".replace(" ", "_").replace("-", "")
 
-# --- 4. TABS (Volledig handmatig uitgeschreven) ---
-tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel & Strategy", "⚙️ Mechanical Grip", "☁️ Dampers", "✈️ Aero"])
+# 4. TABS
+tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel", "⚙️ Mechanical Grip", "☁️ Dampers", "✈️ Aero"])
 
 with tabs[0]: # TYRES
-    st.subheader("Banden & Uitlijning")
     c1, c2 = st.columns(2)
     with c1:
-        st.write("**Front**")
         st.text_input("LF PSI", psi, key=f"lf_p_{ukey}")
-        st.text_input("RF PSI", psi, key=f"rf_p_{ukey}")
         st.text_input("Front Toe", str(car["toe"]), key=f"f_t_{ukey}")
         st.text_input("Front Camber", str(car["cam"]), key=f"f_c_{ukey}")
     with c2:
-        st.write("**Rear**")
         st.text_input("LR PSI", psi, key=f"lr_p_{ukey}")
-        st.text_input("RR PSI", psi, key=f"rr_p_{ukey}")
         st.text_input("Rear Toe", "0.10", key=f"r_t_{ukey}")
         st.text_input("Rear Camber", str(car["cam"] + 0.5), key=f"r_c_{ukey}")
 
 with tabs[1]: # ELECTRONICS
-    st.subheader("Electronica")
     st.text_input("TC1", "3", key=f"tc1_{ukey}")
-    st.text_input("TC2", "2", key=f"tc2_{ukey}")
     st.text_input("ABS", "3", key=f"abs_{ukey}")
-    st.text_input("ECU Map", "1", key=f"ecu_{ukey}")
 
-with tabs[2]: # FUEL & STRATEGY
-    st.subheader("Brandstof & Remmen")
-    st.text_input("Fuel (Litre)", "62", key=f"f_{ukey}")
-    st.text_input("Brake Pads Front", "1", key=f"bpf_{ukey}")
-    st.text_input("Brake Pads Rear", "1", key=f"bpr_{ukey}")
+with tabs[2]: # FUEL
+    st.text_input("Fuel (Litre)", "62", key=f"fuel_{ukey}")
 
 with tabs[3]: # MECHANICAL GRIP
-    st.subheader("Mechanische Grip")
     mc1, mc2 = st.columns(2)
     with mc1:
-        st.text_input("Front Anti-roll bar", str(arb_f), key=f"faf_{ukey}")
+        st.text_input("Front ARB", str(arb_f), key=f"faf_{ukey}")
         st.text_input("Brake Bias (%)", str(car["bb"] + bb_mod), key=f"bb_{ukey}")
         st.text_input("Wheel Rate LF", str(car["wr_f"]), key=f"wlf_{ukey}")
-        st.text_input("Bumpstop Rate LF", "500", key=f"bsf_{ukey}")
     with mc2:
-        st.text_input("Rear Anti-roll bar", str(arb_r), key=f"rar_{ukey}")
-        st.text_input("Preload Differential", str(car["diff"]), key=f"diff_{ukey}")
+        st.text_input("Rear ARB", str(arb_r), key=f"rar_{ukey}")
+        st.text_input("Preload Diff", str(car["diff"]), key=f"diff_{ukey}")
         st.text_input("Wheel Rate LR", str(car["wr_r"]), key=f"wlr_{ukey}")
-        st.text_input("Bumpstop Rate LR", "400", key=f"bsr_{ukey}")
 
 with tabs[4]: # DAMPERS
-    st.subheader("Dampers (B / FB / R / FR)")
-    dc1, dc2, dc3, dc4 = st.columns(4)
-    hoeken = ["LF", "RF", "LR", "RR"]
-    for i, h in enumerate(hoeken):
-        with [dc1, dc2, dc3, dc4][i]:
-            st.write(f"**{h}**")
-            st.text_input(f"B {h}", damp[0], key=f"b_{h}_{ukey}")
-            st.text_input(f"FB {h}", damp[1], key=f"fb_{h}_{ukey}")
-            st.text_input(f"R {h}", damp[2], key=f"r_{h}_{ukey}")
-            st.text_input(f"FR {h}", damp[3], key=f"fr_{h}_{ukey}")
+    dc1, dc2 = st.columns(2)
+    with dc1:
+        st.write("**Front**")
+        st.text_input("Bump LF", damp[0], key=f"blf_{ukey}")
+        st.text_input("Fast Bump LF", damp[1], key=f"fblf_{ukey}")
+    with dc2:
+        st.write("**Rear**")
+        st.text_input("Rebound LR", damp[2], key=f"rlr_{ukey}")
+        st.text_input("Fast Rebound LR", damp[3], key=f"frlr_{ukey}")
 
-with tabs[5]: # AERO
-    st.subheader("Aerodynamica")
+with tabs[5]: # AERO (NU GEFIXED)
     ac1, ac2 = st.columns(2)
     with ac1:
-        st.text_input("Ride Height Front", "48" if ctype != "Street/Bumpy" else "52", key=f"rhf_{ukey}")
+        st.write("**Front Aero**")
+        st.text_input("Ride Height Front", rh_f, key=f"rhf_{ukey}")
         st.text_input("Splitter", "0", key=f"spl_{ukey}")
     with ac2:
-        st.text_input("Ride Height Rear", "68" if ctype != "Street/Bumpy" else "75", key=f"rhr_{ukey}")
+        st.write("**Rear Aero**")
+        st.text_input("Ride Height Rear", rh_r, key=f"rhr_{ukey}")
         st.text_input("Rear Wing", wing, key=f"wing_{ukey}")
 
-# --- SIDEBAR DOKTER ---
-st.sidebar.header("🩺 De Setup Dokter")
-klacht = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur", "Overstuur"], key=f"dr_{ukey}")
-if klacht != "Geen":
-    st.sidebar.warning("Advies: Wijzig de ARB of vleugelstand.")
+# 5. EXPORT FUNCTIE
+st.divider()
+if st.button("💾 Sla huidige Setup op"):
+    st.session_state['history'].append({"Auto": auto, "Circuit": circuit, "PSI": psi, "Wing": wing, "BB": car["bb"] + bb_mod})
+    st.success("Setup opgeslagen!")
+
+if st.session_state['history']:
+    st.subheader("Opgeslagen Setups")
+    df = pd.DataFrame(st.session_state['history'])
+    st.dataframe(df)
+    csv = df.to_csv(index=False).encode('utf-8')
+    st.download_button("📥 Download Excel/CSV", data=csv, file_name='acc_setups.csv', mime='text/csv')
