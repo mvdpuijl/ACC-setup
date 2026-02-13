@@ -2,53 +2,61 @@ import streamlit as st
 import pandas as pd
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.17", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.16", layout="wide")
 
-# UITGEBREID HIGH-CONTRAST THEME (Inclusief Sidebar)
+# HIGH-CONTRAST DARK THEME CSS
 st.markdown("""
     <style>
-    /* Hoofdscherm en Sidebar achtergrond naar zwart */
-    .stApp, [data-testid="stSidebar"] {
-        background-color: #000000 !important;
+    /* Achtergrond en tekst naar spierwit op zwart */
+    .stApp {
+        background-color: #000000;
         color: #FFFFFF !important;
     }
     
-    /* Alle teksten spierwit */
-    label, p, span, h1, h2, h3, .stMarkdown, [data-testid="stWidgetLabel"] p {
+    /* Forceer alle labels, teksten en markdowns naar wit */
+    label, p, span, h1, h2, h3, .stMarkdown {
         color: #FFFFFF !important;
         font-weight: 600 !important;
     }
 
-    /* Selectievakken (ook in sidebar) Focus Rand */
+    /* Selectievakken Focus Rand */
     .stSelectbox div[data-baseweb="select"] {
         border: 1px solid #30363D;
-        background-color: #161B22 !important;
     }
     .stSelectbox div[data-baseweb="select"]:focus-within {
         border: 2px solid #FF4B4B !important;
     }
 
-    /* Knoppen: Zwart op Wit/Blauw */
-    .stButton button { background-color: #FFFFFF !important; color: #000000 !important; font-weight: bold !important; }
-    .stDownloadButton button { background-color: #58A6FF !important; color: #000000 !important; font-weight: bold !important; }
-
-    /* Custom styling voor de Setup Dokter waarschuwingen */
-    .stAlert {
-        background-color: #000000 !important;
-        color: #FFFFFF !important;
-        border: 2px solid #FF4B4B !important; /* Voor Overstuur/Waarschuwing */
-    }
-    
-    /* Pro Tip blok in de sidebar */
-    [data-testid="stSidebar"] .stInfo {
+    /* Input velden tekst naar wit */
+    .stTextInput input {
         background-color: #161B22 !important;
-        border-left: 5px solid #58A6FF !important;
         color: #FFFFFF !important;
+        border: 1px solid #58A6FF !important;
     }
+
+    /* Knoppen: Zwarte tekst op witte/blauwe achtergrond */
+    .stButton button {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+    }
+    .stDownloadButton button {
+        background-color: #58A6FF !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+    }
+
+    /* Tabs styling */
+    .stTabs [data-baseweb="tab-list"] { background-color: #161B22; }
+    .stTabs [data-baseweb="tab"] { color: #FFFFFF !important; }
+    .stTabs [aria-selected="true"] { background-color: #FF4B4B !important; }
+    
+    /* Sidebar tekst */
+    .css-163ttbj { color: #FFFFFF !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. DATABASE (v9.11/v9.14/v9.16 Data)
+# 2. DATABASE (Volledige v9.11/v9.14 data)
 cars_db = {
     "Ferrari 296 GT3": {"bb": 54.2, "diff": 80, "steer": 13.0, "wr_f": 160, "wr_r": 130, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.12, "caster": 12.5, "tips": "Focus op aero-rake."},
     "Porsche 911 GT3 R (992)": {"bb": 50.2, "diff": 120, "steer": 12.0, "wr_f": 190, "wr_r": 150, "f_cam": -3.8, "r_cam": -3.2, "f_toe": -0.04, "r_toe": 0.20, "caster": 13.2, "tips": "Motor achterin; pas op voor lift-off oversteer."},
@@ -72,7 +80,7 @@ if 'history' not in st.session_state:
     st.session_state['history'] = []
 
 # 3. SELECTIE
-st.title("🏎️ :red[ACC] Setup Master v9.17")
+st.title("🏎️ :red[ACC] Setup Master v9.16")
 col_a, col_c = st.columns(2)
 with col_a:
     auto = st.selectbox("🚗 Selecteer Auto:", list(cars_db.keys()))
@@ -80,7 +88,7 @@ with col_c:
     all_circuits = sorted([c for sub in circuits_db.values() for c in sub])
     circuit = st.selectbox("📍 Selecteer Circuit:", all_circuits)
 
-# ENGINEER LOGICA (Berekeningen v9.11)
+# ENGINEER LOGICA
 car = cars_db[auto]
 ctype = next((k for k, v in circuits_db.items() if circuit in v), "High Downforce")
 
@@ -94,13 +102,11 @@ else:
     psi, wing, bb_mod, arb_f, arb_r = "26.8", "11", 0.0, "4", "3"
     damp, rh_f, rh_r, spl, bduct = ["5", "10", "8", "12"], "48", "68", "0", "2"
 
-ukey = f"v917_{auto}_{circuit}".replace(" ", "_").replace("-", "")
+ukey = f"v916_{auto}_{circuit}".replace(" ", "_").replace("-", "")
 
-# 4. SIDEBAR - SETUP DOKTER
+# 4. SIDEBAR
 st.sidebar.header("🩺 De Setup Dokter")
 klacht = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur", "Overstuur"], key=f"dr_{ukey}")
-if klacht != "Geen":
-    st.sidebar.warning(f"Advies: Wijzig ARB voor {klacht}")
 st.sidebar.divider()
 st.sidebar.info(f"💡 Tip: {car['tips']}")
 
@@ -109,6 +115,9 @@ tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel", "⚙️ Mechanical"
 
 with tabs[0]:
     st.write("### :blue[Tyre Alignment]")
+    m1, m2 = st.columns(2)
+    m1.metric("Target PSI", psi)
+    m2.metric("Caster", f"{car['caster']}°")
     c1, c2 = st.columns(2)
     with c1:
         st.text_input("LF PSI", psi, key=f"lf_{ukey}")
@@ -119,14 +128,18 @@ with tabs[0]:
         st.text_input("RR PSI", psi, key=f"rr_{ukey}")
         st.text_input("R-Camber", str(car['r_cam']), key=f"rc_{ukey}")
 
+with tabs[2]:
+    st.text_input("Fuel", "62", key=f"fuel_{ukey}")
+    st.text_input("Brake Duct Front", bduct, key=f"bdf_{ukey}")
+    st.text_input("Brake Duct Rear", bduct, key=f"bdr_{ukey}")
+
 with tabs[3]:
     mc1, mc2 = st.columns(2)
     with mc1:
         st.text_input("Front ARB", arb_f, key=f"farb_{ukey}")
         st.text_input("Brake Bias (%)", str(car["bb"] + bb_mod), key=f"bb_{ukey}")
-        st.text_input("Steer Ratio", str(car["steer"]), key=f"str_{ukey}")
     with mc2:
-        st.text_input("Rear ARB", arb_r, key=f"rarb_{ukey}")
+        st.text_input("Steer Ratio", str(car["steer"]), key=f"str_{ukey}")
         st.text_input("Preload Diff", str(car["diff"]), key=f"diff_{ukey}")
 
 with tabs[5]:
