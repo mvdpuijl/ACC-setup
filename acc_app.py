@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="ACC 2024 Ultimate Master v3.8", layout="wide")
+st.set_page_config(page_title="ACC 2024 Ultimate Master v3.9", layout="wide")
 
 # --- DATABASE ---
 circuits = {
@@ -26,7 +26,7 @@ cars = {
 if 'saved_setups' not in st.session_state:
     st.session_state['saved_setups'] = []
 
-st.title("🏎️ ACC Setup Master v3.8 - Full Xbox Integration")
+st.title("🏎️ ACC Setup Master v3.9 - Full Xbox Integration")
 
 # --- SELECTIE ---
 col_a, col_c = st.columns(2)
@@ -46,10 +46,28 @@ f_arb_v = "4" if ctype != "Street/Bumpy" else "3"
 r_arb_v = "3" if ctype != "Street/Bumpy" else "2"
 d_vals = [5, 10, 8, 12] if ctype != "Street/Bumpy" else [8, 15, 6, 10]
 
+# --- SIDEBAR DOKTER ---
+st.sidebar.header("🩺 De Setup Dokter")
+klacht = st.sidebar.selectbox("Wat doet de auto?", ["Perfect", "Onderstuur (Bocht in)", "Onderstuur (Bocht uit)", "Overstuur (Bocht in)", "Overstuur (Bocht uit)", "Auto stuitert over curbs", "Instabiel bij hard remmen"])
+
+if klacht != "Perfect":
+    st.sidebar.warning("**Ingenieur Advies:**")
+    if "Onderstuur" in klacht:
+        st.sidebar.write("- Verlaag Front Anti-roll bar\n- Verhoog Rear Ride Height\n- Verhoog Front Bumpstop Range")
+    elif "Overstuur" in klacht:
+        st.sidebar.write("- Verlaag Rear Anti-roll bar\n- Verhoog Rear Wing\n- Verlaag Rear Ride Height")
+    elif "stuitert" in klacht:
+        st.sidebar.write("- Verlaag Fast Bump (Dampers)\n- Verlaag Wheel Rate")
+    elif "remmen" in klacht:
+        st.sidebar.write("- Verhoog Brake Bias (naar voren)\n- Verhoog Diff Preload")
+
+st.sidebar.divider()
+st.sidebar.info(f"💡 **Pro Tip voor de {auto}:**\n{car_data['tips']}")
+
 # --- TABS ---
 tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel & Strategy", "⚙️ Mechanical Grip", "☁️ Dampers", "✈️ Aero"])
 
-with tabs[0]: # TYRES (Met Caster)
+with tabs[0]: # TYRES
     c1, c2 = st.columns(2)
     with c1:
         st.write("**Front**")
@@ -79,7 +97,7 @@ with tabs[2]: # FUEL & STRATEGY
     st.selectbox("Front Brake Pads", [1, 2, 3, 4], key=f"fbrakep_{id}")
     st.selectbox("Rear Brake Pads", [1, 2, 3, 4], key=f"rbrakep_{id}")
 
-with tabs[3]: # MECHANICAL GRIP (Per hoek volledig)
+with tabs[3]: # MECHANICAL GRIP
     st.subheader("Mechanical Grip")
     cm1, cm2 = st.columns(2)
     with cm1:
