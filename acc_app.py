@@ -1,128 +1,156 @@
 import streamlit as st
+import pandas as pd
 
-st.set_page_config(page_title="ACC Ultimate Setup Master & Dokter", layout="wide")
+st.set_page_config(page_title="ACC 2024 Ultimate Master", layout="wide")
 
-# --- DATABASE PER AUTO (GT3 2024) ---
-car_db = {
-    "Ferrari 296 GT3": {"motor": "Mid", "bb": "54.2", "wing": 8, "arb": "4/2", "diff": 80, "damp": [5, 10, 7, 12], "tips": "Stabiel platform, focus op aero-rake."},
-    "Porsche 911 GT3 R (992)": {"motor": "Rear", "bb": "50.2", "wing": 10, "arb": "3/4", "diff": 120, "damp": [3, 8, 10, 14], "tips": "Motor achterin. Pas op voor lift-off oversteer."},
-    "BMW M4 GT3": {"motor": "Front", "bb": "57.5", "wing": 5, "arb": "6/1", "diff": 40, "damp": [8, 12, 5, 9], "tips": "Kan agressief over curbs rijden."},
-    "Lamborghini EVO2": {"motor": "Mid", "bb": "55.2", "wing": 9, "arb": "4/3", "diff": 90, "damp": [4, 9, 8, 12], "tips": "Goede rotatie, gevoelig op de achterbanden."},
-    "McLaren 720S GT3 Evo": {"motor": "Mid", "bb": "53.2", "wing": 7, "arb": "3/2", "diff": 70, "damp": [6, 11, 7, 11], "tips": "Focus op splitter-efficiency."},
-    "Mercedes-AMG GT3 Evo": {"motor": "Front", "bb": "56.8", "wing": 6, "arb": "5/2", "diff": 65, "damp": [7, 13, 6, 10], "tips": "Focus op tractie uit de bocht."},
-    "Audi R8 LMS EVO II": {"motor": "Mid", "bb": "54.0", "wing": 8, "arb": "4/4", "diff": 110, "damp": [4, 8, 9, 13], "tips": "Nerveus bij hard remmen."},
-    "Aston Martin Vantage EVO": {"motor": "Front", "bb": "56.2", "wing": 6, "arb": "4/2", "diff": 55, "damp": [6, 12, 6, 10], "tips": "Zeer voorspelbaar weggedrag."},
-    "Ford Mustang GT3": {"motor": "Front", "bb": "57.0", "wing": 7, "arb": "5/2", "diff": 50, "damp": [7, 11, 5, 9], "tips": "Nieuw voor 2024, krachtige motor."},
-    "Corvette Z06 GT3.R": {"motor": "Mid", "bb": "54.8", "wing": 8, "arb": "4/3", "diff": 75, "damp": [5, 10, 8, 12], "tips": "Goede mechanische grip balans."}
+# --- DATABASE LOGICA (De intelligentie van de app) ---
+circuits = {
+    "High Downforce": ["Spa", "Zandvoort", "Kyalami", "Barcelona", "Hungaroring", "Suzuka", "Donington"],
+    "Low Downforce": ["Monza", "Paul Ricard", "Bathurst", "Silverstone"],
+    "Street/Bumpy": ["Zolder", "Mount Panorama", "Laguna Seca", "Misano", "Imola", "Valencia"]
 }
 
-# --- SIDEBAR: DE SETUP DOKTER ---
+cars = {
+    "Ferrari 296 GT3": {"type": "Mid", "bb": 54.2, "diff": 80, "steer": 13.0, "wr": 160, "tips": "Stabiel platform, profiteert van aero-rake."},
+    "Porsche 911 GT3 R (992)": {"type": "Rear", "bb": 50.2, "diff": 120, "steer": 12.0, "wr": 190, "tips": "Motor achterin. Pas op voor lift-off oversteer."},
+    "BMW M4 GT3": {"type": "Front", "bb": 57.5, "diff": 40, "steer": 14.0, "wr": 150, "tips": "Lange wielbasis, zeer vergevingsgezind over curbs."},
+    "Lamborghini EVO2": {"type": "Mid", "bb": 55.2, "diff": 90, "steer": 13.0, "wr": 165, "tips": "Goede rotatie, maar wees voorzichtig met de achterbanden."},
+    "McLaren 720S EVO": {"type": "Mid", "bb": 53.2, "diff": 70, "steer": 13.0, "wr": 155, "tips": "Heel gevoelig voor de juiste rijhoogte."},
+    "Mercedes AMG EVO": {"type": "Front", "bb": 56.8, "diff": 65, "steer": 14.0, "wr": 170, "tips": "Sterke motor, focus op tractie bij het uitkomen."},
+    "Audi R8 EVO II": {"type": "Mid", "bb": 54.0, "diff": 110, "steer": 13.0, "wr": 160, "tips": "Snelle rotatie, kan nerveus zijn bij hard remmen."},
+    "Aston Martin EVO": {"type": "Front", "bb": 56.2, "diff": 55, "steer": 14.0, "wr": 155, "tips": "Zeer voorspelbaar en stabiel onder remmen."},
+    "Ford Mustang GT3": {"type": "Front", "bb": 57.0, "diff": 50, "steer": 14.0, "wr": 160, "tips": "Veel koppel, focus op mechanische grip achter."},
+    "Corvette Z06 GT3.R": {"type": "Mid", "bb": 54.8, "diff": 75, "steer": 13.0, "wr": 160, "tips": "Goede balans tussen topsnelheid en bochten."}
+}
+
+# Initialiseer opslag voor setups
+if 'saved_setups' not in st.session_state:
+    st.session_state['saved_setups'] = []
+
+st.title("🏎️ ACC Setup Master v3.2 - Global 2024")
+
+# --- SELECTIE ---
+col_a, col_c = st.columns(2)
+with col_a:
+    auto = st.selectbox("🚗 Selecteer Auto:", list(cars.keys()))
+with col_c:
+    circuit = st.selectbox("📍 Selecteer Circuit:", [c for sub in circuits.values() for c in sub])
+
+# Berekening van slimme basiswaarden
+car_data = cars[auto]
+ctype = next((k for k, v in circuits.items() if circuit in v), "High Downforce")
+
+# Dynamische aanbevelingen op basis van circuit-type en auto-layout
+wing_rec = 10 if ctype == "High Downforce" else 3 if ctype == "Low Downforce" else 7
+psi_rec = "26.7" if ctype == "High Downforce" else "26.3"
+f_arb_rec = 4 if ctype != "Street/Bumpy" else 3
+r_arb_rec = 3 if ctype != "Street/Bumpy" else 2
+d_vals = [5, 10, 8, 12] if ctype != "Street/Bumpy" else [8, 15, 6, 10]
+
+# --- SIDEBAR DOKTER ---
 st.sidebar.header("🩺 De Setup Dokter")
-st.sidebar.write("Wat doet de auto op de Xbox?")
-klacht = st.sidebar.selectbox("Selecteer klacht:", [
-    "Auto rijdt perfect",
-    "Onderstuur (Bocht ingaan)",
-    "Onderstuur (Bocht uitgaan)",
-    "Overstuur (Bocht ingaan)",
-    "Overstuur (Bocht uitgaan)",
-    "Auto stuitert/springt over curbs",
-    "Instabiel bij hard remmen",
-    "Banden worden te heet (>27.0 PSI)"
-])
+klacht = st.sidebar.selectbox("Wat doet de auto?", ["Perfect", "Onderstuur (Bocht in)", "Onderstuur (Bocht uit)", "Overstuur (Bocht in)", "Overstuur (Bocht uit)", "Stuitert over curbs", "Instabiel bij remmen"])
+if klacht != "Perfect":
+    st.sidebar.warning("**Advies:**")
+    if "Onderstuur" in klacht: st.sidebar.write("- Verlaag Front ARB\n- Verhoog Rear Ride Height\n- Verhoog Front Bumpstop Range")
+    elif "Overstuur" in klacht: st.sidebar.write("- Verlaag Rear ARB\n- Verhoog Rear Wing\n- Verlaag Rear Ride Height")
+    elif "curbs" in klacht: st.sidebar.write("- Verlaag Fast Bump (Dampers)\n- Verlaag Wheel Rate")
+    elif "remmen" in klacht: st.sidebar.write("- Verhoog Brake Bias naar voren\n- Verhoog Diff Preload")
 
-if klacht != "Auto rijdt perfect":
-    st.sidebar.warning("**Aanbevolen acties:**")
-    if "Onderstuur" in klacht:
-        st.sidebar.write("- ⚙️ Verlaag Front ARB")
-        st.sidebar.write("- ✈️ Verhoog Rear Ride Height")
-        st.sidebar.write("- ⚙️ Verhoog Bumpstop Range (Front)")
-    elif "Overstuur" in klacht:
-        st.sidebar.write("- ⚙️ Verlaag Rear ARB")
-        st.sidebar.write("- ✈️ Verhoog Rear Wing")
-        st.sidebar.write("- ⚡ Verhoog TC of TC2")
-    elif "curbs" in klacht:
-        st.sidebar.write("- ☁️ Verlaag Fast Bump (Dampers)")
-        st.sidebar.write("- ⚙️ Verlaag Wheel Rate (Veren)")
-    elif "remmen" in klacht:
-        st.sidebar.write("- ⚙️ Verhoog Brake Bias naar voren")
-        st.sidebar.write("- ⚙️ Verhoog Diff Preload")
-    elif "PSI" in klacht:
-        st.sidebar.write("- 🛞 Verlaag koude bandenspanning")
-        st.sidebar.write("- ✈️ Open Brake Ducts (+1)")
+st.sidebar.divider()
+st.sidebar.info(f"💡 **Tip voor de {auto}:**\n{car_data['tips']}")
 
-# --- HOOFDSCHERM ---
-st.title("🏎️ ACC Setup Master - GT3 2024")
-
-col1, col2 = st.columns(2)
-with col1:
-    auto = st.selectbox("🚗 Kies Auto:", list(car_db.keys()))
-with col2:
-    circuit = st.selectbox("📍 Kies Circuit:", ["Spa", "Monza", "Zolder", "Zandvoort", "Nürburgring", "Kyalami", "Suzuka", "Mount Panorama"])
-
-data = car_db[auto]
-d = data["damp"]
-
-tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel & Strategy", "⚙️ Mechanical Grip", "☁️ Dampers", "✈️ Aero"])
+# --- TABS VOOR INPUT ---
+tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⚙️ Mechanical Grip", "☁️ Dampers", "✈️ Aero"])
 
 with tabs[0]: # TYRES
-    c1, c2, c3, c4 = st.columns(4)
-    for i, side in enumerate(["LF", "RF", "LR", "RR"]):
-        with [c1, c2, c3, c4][i]:
-            st.write(f"**{side}**")
-            st.text_input("PSI", "26.5", key=f"p_{side}")
-            st.text_input("Toe", "0.06", key=f"t_{side}")
-            st.text_input("Camber", "-3.5", key=f"c_{side}")
-            st.text_input("Caster", "8.0", key=f"ca_{side}")
+    st.subheader("Tyres & Alignment")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.write("**Front**")
+        psi_f = st.text_input("PSI (Warm Target 26.5-27.0)", psi_rec, key="pf")
+        toe_f = st.text_input("Toe Front", "0.06")
+        cam_f = st.text_input("Camber Front", "-3.5")
+    with c2:
+        st.write("**Rear**")
+        psi_r = st.text_input("PSI (Warm Target 26.5-27.0) ", psi_rec, key="pr")
+        toe_r = st.text_input("Toe Rear", "0.10")
+        cam_r = st.text_input("Camber Rear", "-3.0")
 
 with tabs[1]: # ELECTRONICS
+    st.subheader("Electronics")
     ce1, ce2 = st.columns(2)
     with ce1:
-        st.number_input("TC", 0, 12, 3)
-        st.number_input("TC2", 0, 12, 2)
+        tc1 = st.number_input("TC1", 0, 12, 3)
+        tc2 = st.number_input("TC2", 0, 12, 3)
     with ce2:
-        st.number_input("ABS", 0, 12, 3)
-        st.number_input("ECU Map", 1, 4, 1)
+        abs_v = st.number_input("ABS", 0, 12, 3)
+        ecu_v = st.number_input("ECU Map", 1, 4, 1)
 
-with tabs[3]: # MECHANICAL GRIP
+with tabs[2]: # MECHANICAL GRIP
+    st.subheader("Suspension & Mechanical")
     cm1, cm2 = st.columns(2)
     with cm1:
-        st.write("**Front**")
-        st.text_input("Anti-roll bar", data["arb"].split('/')[0])
-        st.text_input("Brake Bias (%)", data["bb"])
-        st.text_input("Steer Ratio", "13.0")
-        st.text_input("Wheel Rate", "160")
-        st.text_input("Bumpstop Rate", "500")
-        st.text_input("Bumpstop Range", "20")
+        st.write("**General & Front**")
+        bb_v = st.text_input("Brake Bias (%)", car_data["bb"])
+        f_arb_v = st.text_input("Anti-roll bar (F)", f_arb_rec)
+        sr_v = st.text_input("Steer Ratio", car_data["steer"])
+        wr_f_v = st.text_input("Wheel Rate (F)", car_data["wr"])
+        bsr_f_v = st.text_input("Bumpstop Rate (F)", "500")
+        bsran_f_v = st.text_input("Bumpstop Range (F)", "20")
     with cm2:
-        st.write("**Rear**")
-        st.text_input("Anti-roll bar ", data["arb"].split('/')[1])
-        st.text_input("Preload Differential", f"{data['diff']}Nm")
-        st.text_input("Wheel Rate ", "130")
-        st.text_input("Bumpstop Rate ", "400")
-        st.text_input("Bumpstop Range ", "15")
+        st.write("**Differential & Rear**")
+        diff_v = st.text_input("Preload Diff (Nm)", car_data["diff"])
+        r_arb_v = st.text_input("Anti-roll bar (R)", r_arb_rec)
+        wr_r_v = st.text_input("Wheel Rate (R)", int(car_data["wr"] * 0.8))
+        bsr_r_v = st.text_input("Bumpstop Rate (R)", "400")
+        bsran_r_v = st.text_input("Bumpstop Range (R)", "15")
 
-with tabs[4]: # DAMPERS
+with tabs[3]: # DAMPERS
+    st.subheader("Dampers (4-Way)")
     cd1, cd2, cd3, cd4 = st.columns(4)
     for i, hoek in enumerate(["LF", "RF", "LR", "RR"]):
         with [cd1, cd2, cd3, cd4][i]:
             st.write(f"**{hoek}**")
-            st.number_input("Bump", 0, 40, d[0], key=f"b_{hoek}")
-            st.number_input("Fast Bump", 0, 40, d[1], key=f"fb_{hoek}")
-            st.number_input("Rebound", 0, 40, d[2], key=f"r_{hoek}")
-            st.number_input("Fast Rebound", 0, 40, d[3], key=f"fr_{hoek}")
+            st.number_input("Bump", 0, 40, d_vals[0], key=f"b_{hoek}")
+            st.number_input("F-Bump", 0, 40, d_vals[1], key=f"fb_{hoek}")
+            st.number_input("Rebound", 0, 40, d_vals[2], key=f"r_{hoek}")
+            st.number_input("F-Rebound", 0, 40, d_vals[3], key=f"fr_{hoek}")
 
-with tabs[5]: # AERO
+with tabs[4]: # AERO
+    st.subheader("Aerodynamics")
     ca1, ca2 = st.columns(2)
     with ca1:
         st.write("**Front**")
-        st.text_input("Ride Height", "50mm")
-        st.text_input("Splitter", "0")
-        st.text_input("Brake Ducts", "2")
+        frh_v = st.text_input("Ride Height (F)", "48")
+        split_v = st.text_input("Splitter", "0")
+        fduct_v = st.text_input("Brake Ducts (F)", "2")
     with ca2:
         st.write("**Rear**")
-        st.text_input("Ride Height ", "70mm")
-        st.number_input("Rear Wing", 0, 20, data["wing"])
-        st.text_input("Brake Ducts ", "2")
+        rrh_v = st.text_input("Ride Height (R)", "68")
+        wing_v = st.number_input("Rear Wing", 0, 20, wing_rec)
+        rduct_v = st.text_input("Brake Ducts (R)", "2")
 
-st.sidebar.divider()
-st.sidebar.info(f"💡 **Tip voor de {auto}:**\n{data['tips']}")
+# --- SAVE & EXPORT ---
+st.divider()
+c_sv, c_dl = st.columns(2)
+
+with c_sv:
+    if st.button("💾 Sla Setup op voor deze sessie"):
+        entry = {
+            "Auto": auto, "Circuit": circuit, "PSI": psi_f, 
+            "Wing": wing_v, "BB": bb_v, "TC": tc1, "Diff": diff_v
+        }
+        st.session_state['saved_setups'].append(entry)
+        st.success("Setup toegevoegd aan lijst!")
+
+with c_dl:
+    if st.session_state['saved_setups']:
+        df = pd.DataFrame(st.session_state['saved_setups'])
+        csv = df.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Download alle setups (CSV)", data=csv, file_name='acc_setups.csv', mime='text/csv')
+
+# --- TABEL WEERGAVE ---
+if st.session_state['saved_setups']:
+    st.subheader("📋 Opgeslagen in deze sessie")
+    st.table(pd.DataFrame(st.session_state['saved_setups']))
