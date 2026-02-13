@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="ACC 2024 Ultimate Master v3.5", layout="wide")
+st.set_page_config(page_title="ACC 2024 Ultimate Master v3.8", layout="wide")
 
-# --- DATABASE LOGICA ---
+# --- DATABASE ---
 circuits = {
     "High Downforce": ["Spa", "Zandvoort", "Kyalami", "Barcelona", "Hungaroring", "Suzuka", "Donington"],
     "Low Downforce": ["Monza", "Paul Ricard", "Bathurst", "Silverstone"],
@@ -11,111 +11,130 @@ circuits = {
 }
 
 cars = {
-    "Ferrari 296 GT3": {"type": "Mid", "bb": 54.2, "diff": 80, "steer": 13.0, "wr": 160, "tips": "Stabiel, focus op aero-rake."},
-    "Porsche 911 GT3 R (992)": {"type": "Rear", "bb": 50.2, "diff": 120, "steer": 12.0, "wr": 190, "tips": "Motor achterin. Pas op voor lift-off oversteer."},
-    "BMW M4 GT3": {"type": "Front", "bb": 57.5, "diff": 40, "steer": 14.0, "wr": 150, "tips": "Vergevingsgezind over curbs door lange wielbasis."},
-    "Lamborghini EVO2": {"type": "Mid", "bb": 55.2, "diff": 90, "steer": 13.0, "wr": 165, "tips": "Goede rotatie, agressief op achterbanden."},
-    "McLaren 720S EVO": {"type": "Mid", "bb": 53.2, "diff": 70, "steer": 13.0, "wr": 155, "tips": "Gevoelig voor splitter-hoogte."},
-    "Mercedes AMG EVO": {"type": "Front", "bb": 56.8, "diff": 65, "steer": 14.0, "wr": 170, "tips": "Focus op tractie en bandenbehoud."},
-    "Audi R8 EVO II": {"type": "Mid", "bb": 54.0, "diff": 110, "steer": 13.0, "wr": 160, "tips": "Snelle rotatie, nerveus bij hard remmen."},
-    "Aston Martin EVO": {"type": "Front", "bb": 56.2, "diff": 55, "steer": 14.0, "wr": 155, "tips": "Stabiel platform."},
-    "Ford Mustang GT3": {"type": "Front", "bb": 57.0, "diff": 50, "steer": 14.0, "wr": 160, "tips": "Veel koppel, nieuw platform."},
-    "Corvette Z06 GT3.R": {"type": "Mid", "bb": 54.8, "diff": 75, "steer": 13.0, "wr": 160, "tips": "Balans tussen topsnelheid en bochten."}
+    "Ferrari 296 GT3": {"type": "Mid", "bb": 54.2, "diff": 80, "steer": 13.0, "wr_f": 160, "wr_r": 130, "tips": "Stabiel, focus op aero-rake."},
+    "Porsche 911 GT3 R (992)": {"type": "Rear", "bb": 50.2, "diff": 120, "steer": 12.0, "wr_f": 190, "wr_r": 150, "tips": "Motor achterin. Pas op voor oversteer."},
+    "BMW M4 GT3": {"type": "Front", "bb": 57.5, "diff": 40, "steer": 14.0, "wr_f": 150, "wr_r": 120, "tips": "Sterk over curbs."},
+    "Lamborghini EVO2": {"type": "Mid", "bb": 55.2, "diff": 90, "steer": 13.0, "wr_f": 165, "wr_r": 135, "tips": "Veel rotatie."},
+    "McLaren 720S EVO": {"type": "Mid", "bb": 53.2, "diff": 70, "steer": 13.0, "wr_f": 155, "wr_r": 125, "tips": "Aero gevoelig."},
+    "Mercedes AMG EVO": {"type": "Front", "bb": 56.8, "diff": 65, "steer": 14.0, "wr_f": 170, "wr_r": 140, "tips": "Focus op tractie."},
+    "Audi R8 EVO II": {"type": "Mid", "bb": 54.0, "diff": 110, "steer": 13.0, "wr_f": 160, "wr_r": 130, "tips": "Nerveus bij remmen."},
+    "Aston Martin EVO": {"type": "Front", "bb": 56.2, "diff": 55, "steer": 14.0, "wr_f": 155, "wr_r": 125, "tips": "Stabiel platform."},
+    "Ford Mustang GT3": {"type": "Front", "bb": 57.0, "diff": 50, "steer": 14.0, "wr_f": 160, "wr_r": 130, "tips": "Veel koppel."},
+    "Corvette Z06 GT3.R": {"type": "Mid", "bb": 54.8, "diff": 75, "steer": 13.0, "wr_f": 160, "wr_r": 130, "tips": "Goede balans."}
 }
 
 if 'saved_setups' not in st.session_state:
     st.session_state['saved_setups'] = []
 
-st.title("🏎️ ACC Setup Master v3.5 - Dynamic Specs")
+st.title("🏎️ ACC Setup Master v3.8 - Full Xbox Integration")
 
 # --- SELECTIE ---
 col_a, col_c = st.columns(2)
 with col_a:
-    auto = st.selectbox("🚗 Selecteer Auto:", list(cars.keys()))
+    auto = st.selectbox("🚗 Kies Auto:", list(cars.keys()))
 with col_c:
-    circuit = st.selectbox("📍 Selecteer Circuit:", [c for sub in circuits.values() for c in sub])
+    circuit = st.selectbox("📍 Kies Circuit:", [c for sub in circuits.values() for c in sub])
 
-# --- DYNAMISCHE REFRESH IDENTIFIER ---
-# Deze 'id' zorgt ervoor dat Streamlit alle velden vernieuwt bij een nieuwe keuze
-id = f"{auto}_{circuit}"
-
-# --- LOGICA: BEREKEN DYNAMISCHE WAARDEN ---
+id = f"{auto}_{circuit}".replace(" ", "_")
 car_data = cars[auto]
 ctype = next((k for k, v in circuits.items() if circuit in v), "High Downforce")
 
-wing_val = 10 if ctype == "High Downforce" else 3 if ctype == "Low Downforce" else 7
-psi_val = "26.7" if ctype == "High Downforce" else "26.3"
-f_arb_val = "4" if ctype != "Street/Bumpy" else "3"
-r_arb_val = "3" if ctype != "Street/Bumpy" else "2"
-frh_val = "48" if ctype != "Low Downforce" else "45"
-rrh_val = "68" if ctype != "Low Downforce" else "60"
-wr_f_val = str(car_data["wr"])
-wr_r_val = str(int(car_data["wr"] * 0.85))
+# Dynamische waarden
+wing_v = 10 if ctype == "High Downforce" else 3 if ctype == "Low Downforce" else 7
+psi_v = "26.7" if ctype == "High Downforce" else "26.3"
+f_arb_v = "4" if ctype != "Street/Bumpy" else "3"
+r_arb_v = "3" if ctype != "Street/Bumpy" else "2"
 d_vals = [5, 10, 8, 12] if ctype != "Street/Bumpy" else [8, 15, 6, 10]
 
-# --- SIDEBAR DOKTER ---
-st.sidebar.header("🩺 De Setup Dokter")
-st.sidebar.info(f"💡 **Tip voor de {auto}:**\n{car_data['tips']}")
-
 # --- TABS ---
-tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⚙️ Mechanical Grip", "☁️ Dampers", "✈️ Aero"])
+tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel & Strategy", "⚙️ Mechanical Grip", "☁️ Dampers", "✈️ Aero"])
 
-with tabs[0]: # TYRES
+with tabs[0]: # TYRES (Met Caster)
     c1, c2 = st.columns(2)
     with c1:
-        psi_lf = st.text_input("LF PSI", psi_val, key=f"psi_lf_{id}")
-        psi_rf = st.text_input("RF PSI", psi_val, key=f"psi_rf_{id}")
+        st.write("**Front**")
+        for h in ["LF", "RF"]:
+            st.text_input(f"{h} PSI", psi_v, key=f"psi_{h}_{id}")
+            st.text_input(f"{h} Toe", "0.06", key=f"t_{h}_{id}")
+            st.text_input(f"{h} Camber", "-3.5", key=f"c_{h}_{id}")
+            st.text_input(f"{h} Caster", "12.0", key=f"cs_{h}_{id}")
     with c2:
-        psi_lr = st.text_input("LR PSI", psi_val, key=f"psi_lr_{id}")
-        psi_rr = st.text_input("RR PSI", psi_val, key=f"psi_rr_{id}")
+        st.write("**Rear**")
+        for h in ["LR", "RR"]:
+            st.text_input(f"{h} PSI", psi_v, key=f"psi_{h}_{id}")
+            st.text_input(f"{h} Toe", "0.10", key=f"t_{h}_{id}")
+            st.text_input(f"{h} Camber", "-3.0", key=f"c_{h}_{id}")
+            st.text_input(f"{h} Caster", "0.0", key=f"cs_{h}_{id}")
 
 with tabs[1]: # ELECTRONICS
-    tc1 = st.number_input("TC1", 0, 12, 3, key=f"tc1_{id}")
-    tc2 = st.number_input("TC2", 0, 12, 2, key=f"tc2_{id}")
-    abs_v = st.number_input("ABS", 0, 12, 3, key=f"abs_{id}")
-    ecu_v = st.number_input("ECU Map", 1, 4, 1, key=f"ecu_{id}")
+    st.number_input("TC", 0, 12, 3, key=f"tc1_{id}")
+    st.number_input("TC2", 0, 12, 2, key=f"tc2_{id}")
+    st.number_input("ABS", 0, 12, 3, key=f"abs_{id}")
+    st.number_input("ECU Map", 1, 5, 1, key=f"ecu_{id}")
 
-with tabs[2]: # MECHANICAL GRIP
+with tabs[2]: # FUEL & STRATEGY
+    st.subheader("Fuel & Pit Strategy")
+    st.text_input("Fuel (Litre)", "60", key=f"fuel_{id}")
+    st.text_input("Tyre Set", "1", key=f"tset_{id}")
+    st.selectbox("Front Brake Pads", [1, 2, 3, 4], key=f"fbrakep_{id}")
+    st.selectbox("Rear Brake Pads", [1, 2, 3, 4], key=f"rbrakep_{id}")
+
+with tabs[3]: # MECHANICAL GRIP (Per hoek volledig)
+    st.subheader("Mechanical Grip")
     cm1, cm2 = st.columns(2)
     with cm1:
-        f_arb = st.text_input("Anti-Roll Bar Front", f_arb_val, key=f"farb_{id}")
-        bb = st.text_input("Brake Bias (%)", str(car_data["bb"]), key=f"bb_{id}")
-        wr_f = st.text_input("Wheel Rate (Front)", wr_f_val, key=f"wrf_{id}")
+        st.write("**Front Settings**")
+        st.text_input("Front Anti-roll bar", f_arb_v, key=f"farb_{id}")
+        st.text_input("Brake Bias (%)", str(car_data["bb"]), key=f"bb_{id}")
+        st.text_input("Steer Ratio", str(car_data["steer"]), key=f"sr_{id}")
+        for h in ["LF", "RF"]:
+            st.write(f"*{h} Suspension*")
+            st.text_input(f"Wheel Rate {h}", str(car_data["wr_f"]), key=f"wr_{h}_{id}")
+            st.text_input(f"Bumpstop Rate {h}", "500", key=f"bsr_{h}_{id}")
+            st.text_input(f"Bumpstop Range {h}", "20", key=f"bsran_{h}_{id}")
     with cm2:
-        r_arb = st.text_input("Anti-Roll Bar Rear", r_arb_val, key=f"rarb_{id}")
-        diff = st.text_input("Preload Differential (Nm)", str(car_data["diff"]), key=f"diff_{id}")
-        wr_r = st.text_input("Wheel Rate (Rear)", wr_r_val, key=f"wrr_{id}")
+        st.write("**Rear Settings**")
+        st.text_input("Rear Anti-roll bar", r_arb_v, key=f"rarb_{id}")
+        st.text_input("Preload Differential (Nm)", str(car_data["diff"]), key=f"diff_{id}")
+        for h in ["LR", "RR"]:
+            st.write(f"*{h} Suspension*")
+            st.text_input(f"Wheel Rate {h}", str(car_data["wr_r"]), key=f"wr_{h}_{id}")
+            st.text_input(f"Bumpstop Rate {h}", "400", key=f"bsr_{h}_{id}")
+            st.text_input(f"Bumpstop Range {h}", "15", key=f"bsran_{h}_{id}")
 
-with tabs[3]: # DAMPERS
-    st.subheader("Dampers (B / FB / R / FR)")
-    cd1, cd2 = st.columns(2)
-    with cd1:
-        st.write("**Front (L/R)**")
-        st.number_input("Bump Front", 0, 40, d_vals[0], key=f"bf_{id}")
-        st.number_input("F-Bump Front", 0, 40, d_vals[1], key=f"fbf_{id}")
-    with cd2:
-        st.write("**Rear (L/R)**")
-        st.number_input("Rebound Rear", 0, 40, d_vals[2], key=f"rr_{id}")
-        st.number_input("F-Rebound Rear", 0, 40, d_vals[3], key=f"frr_{id}")
+with tabs[4]: # DAMPERS
+    st.subheader("Dampers (4-Way Matrix)")
+    cd1, cd2, cd3, cd4 = st.columns(4)
+    for i, h in enumerate(["LF", "RF", "LR", "RR"]):
+        with [cd1, cd2, cd3, cd4][i]:
+            st.write(f"**{h}**")
+            st.number_input(f"Bump {h}", 0, 40, d_vals[0], key=f"b_{h}_{id}")
+            st.number_input(f"Fast Bump {h}", 0, 40, d_vals[1], key=f"fb_{h}_{id}")
+            st.number_input(f"Rebound {h}", 0, 40, d_vals[2], key=f"r_{h}_{id}")
+            st.number_input(f"Fast Rebound {h}", 0, 40, d_vals[3], key=f"fr_{h}_{id}")
 
-with tabs[4]: # AERO
+with tabs[5]: # AERO
+    st.subheader("Aerodynamics")
     ca1, ca2 = st.columns(2)
     with ca1:
-        frh = st.text_input("Ride Height Front", frh_val, key=f"frh_{id}")
-        fduct = st.text_input("Brake Ducts Front", "2", key=f"fd_{id}")
+        st.write("**Front Aero**")
+        st.text_input("Ride Height Front", "48", key=f"frh_{id}")
+        st.text_input("Splitter", "0", key=f"spl_{id}")
+        st.text_input("Brake Ducts Front", "2", key=f"fdb_{id}")
     with ca2:
-        rrh = st.text_input("Ride Height Rear", rrh_val, key=f"rrh_{id}")
-        wing = st.number_input("Rear Wing", 0, 20, wing_val, key=f"wing_{id}")
+        st.write("**Rear Aero**")
+        st.text_input("Ride Height Rear", "68", key=f"rrh_{id}")
+        st.number_input("Rear Wing", 0, 20, wing_v, key=f"wing_{id}")
+        st.text_input("Brake Ducts Rear", "2", key=f"rdb_{id}")
 
-# --- SAVE & EXPORT ---
+# --- OPSLAG & EXPORT ---
 st.divider()
 if st.button("💾 Sla Setup op"):
-    entry = {"Auto": auto, "Circuit": circuit, "PSI": psi_lf, "Wing": wing, "BB": bb}
-    st.session_state['saved_setups'].append(entry)
-    st.success("Opgeslagen!")
+    st.session_state['saved_setups'].append({"Auto": auto, "Circuit": circuit, "PSI": psi_v, "Wing": wing_v, "BB": car_data["bb"]})
+    st.success("Setup opgeslagen!")
 
 if st.session_state['saved_setups']:
     df = pd.DataFrame(st.session_state['saved_setups'])
     st.table(df)
     csv = df.to_csv(index=False).encode('utf-8')
-    st.download_button("📥 Download CSV", data=csv, file_name='acc_setups.csv', mime='text/csv')
+    st.download_button("📥 Download Database (CSV)", data=csv, file_name='acc_setups.csv', mime='text/csv')
