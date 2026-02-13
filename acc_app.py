@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.9", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.10", layout="wide")
 
 # 2. DATABASE: Geometrie en basiswaarden per auto
 cars_db = {
@@ -28,7 +28,7 @@ if 'history' not in st.session_state:
     st.session_state['history'] = []
 
 # 3. SELECTIE
-st.title("🏎️ ACC Setup Master v9.9 - Aero Fix")
+st.title("🏎️ ACC Setup Master v9.10 - Final")
 col_a, col_c = st.columns(2)
 with col_a:
     auto = st.selectbox("🚗 Kies Auto:", list(cars_db.keys()))
@@ -50,7 +50,7 @@ else: # High Downforce
     psi, wing, bb_mod, arb_f, arb_r = "26.8", "11", 0.0, "4", "3"
     damp, rh_f, rh_r, spl = ["5", "10", "8", "12"], "48", "68", "0"
 
-ukey = f"v99_{auto}_{circuit}".replace(" ", "_").replace("-", "")
+ukey = f"v910_{auto}_{circuit}".replace(" ", "_").replace("-", "")
 
 # 4. SIDEBAR DOKTER
 st.sidebar.header("🩺 De Setup Dokter")
@@ -83,6 +83,9 @@ with tabs[1]: # ELECTRONICS
     st.text_input("TC1", "3", key=f"tc1_{ukey}")
     st.text_input("ABS", "3", key=f"abs_{ukey}")
 
+with tabs[2]: # FUEL
+    st.text_input("Fuel (Litre)", "62", key=f"fuel_{ukey}")
+
 with tabs[3]: # MECHANICAL GRIP
     mc1, mc2 = st.columns(2)
     with mc1:
@@ -92,6 +95,7 @@ with tabs[3]: # MECHANICAL GRIP
     with mc2:
         st.text_input("Rear ARB", arb_r, key=f"rarb_{ukey}")
         st.text_input("Preload Diff", str(car["diff"]), key=f"diff_{ukey}")
+        st.text_input("Wheel Rate LR", str(car["wr_r"]), key=f"wlr_{ukey}")
 
 with tabs[4]: # DAMPERS
     dc1, dc2 = st.columns(2)
@@ -104,7 +108,7 @@ with tabs[4]: # DAMPERS
         st.text_input("Rebound LR", damp[2], key=f"rlr_{ukey}")
         st.text_input("Fast Rebound LR", damp[3], key=f"frlr_{ukey}")
 
-with tabs[5]: # AERO (NU CORRECT GEKOPPELD)
+with tabs[5]: # AERO
     ac1, ac2 = st.columns(2)
     with ac1:
         st.write("**Front Aero**")
@@ -115,9 +119,14 @@ with tabs[5]: # AERO (NU CORRECT GEKOPPELD)
         st.text_input("Ride Height Rear", rh_r, key=f"rhr_{ukey}")
         st.text_input("Rear Wing", wing, key=f"wing_{ukey}")
 
-# 6. OPSLAG & EXPORT
+# 6. OPSLAG & EXPORT (NU NAAST ELKAAR)
 st.divider()
-if st.button("💾 Sla Setup op"):
+col_btn1, col_btn2 = st.columns([1, 4]) # Verhouding van de kolommen
+
+with col_btn1:
+    save_btn = st.button("💾 Sla Setup op")
+
+if save_btn:
     new_setup = {
         "Auto": auto, "Circuit": circuit, "PSI": psi, "Wing": wing, "Splitter": spl,
         "BB": car["bb"] + bb_mod, "F_Cam": car["f_cam"], "R_Cam": car["r_cam"],
@@ -125,11 +134,19 @@ if st.button("💾 Sla Setup op"):
         "F_ARB": arb_f, "R_ARB": arb_r, "RH_F": rh_f, "RH_R": rh_r
     }
     st.session_state['history'].append(new_setup)
-    st.success(f"Setup voor {auto} op {circuit} toegevoegd!")
+    st.success(f"Toegevoegd!")
 
 if st.session_state['history']:
-    st.subheader("📋 Opgeslagen Setup Database")
     df = pd.DataFrame(st.session_state['history'])
-    st.table(df) 
     csv = df.to_csv(index=False).encode('utf-8')
-    st.download_button(label="📥 Download Database (CSV)", data=csv, file_name='acc_setups.csv', mime='text/csv')
+    
+    with col_btn2:
+        st.download_button(
+            label="📥 Download Database (CSV)",
+            data=csv,
+            file_name='acc_setups_final.csv',
+            mime='text/csv'
+        )
+    
+    st.subheader("📋 Opgeslagen Setup Database")
+    st.table(df)
