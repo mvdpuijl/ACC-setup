@@ -2,64 +2,26 @@ import streamlit as st
 import pandas as pd
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.15", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.14", layout="wide")
 
-# DARK RACE THEME - Minimaliseert wit, behoudt leesbaarheid
+# Visuele styling
 st.markdown("""
     <style>
-    /* Achtergrond van de hele app */
-    .stApp {
-        background-color: #0E1117;
-        color: #E0E0E0;
-    }
-    /* Styling voor de Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
-        background-color: #161B22;
-        padding: 10px;
-        border-radius: 10px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        background-color: #21262D;
-        border-radius: 5px;
-        color: white;
-        font-weight: bold;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #FF4B4B !important;
-        border: 1px solid #FF4B4B;
-    }
-    /* Input velden styling */
-    .stTextInput input {
-        background-color: #21262D !important;
-        color: #58A6FF !important;
-        border: 1px solid #30363D !important;
-    }
-    /* Headers inkleuren */
-    h1, h2, h3 {
-        color: #FF4B4B !important;
-    }
-    /* Containers voor visuele scheiding */
-    div.stBlock {
-        background-color: #161B22;
-        padding: 15px;
-        border-radius: 10px;
-        border: 1px solid #30363D;
-    }
+    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
+    .stTabs [aria-selected="true"] { background-color: #ff4b4b !important; color: white !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. DATABASE (Identiek aan v9.11/v9.14)
+# 2. DATABASE (Volledig v9.11)
 cars_db = {
     "Ferrari 296 GT3": {"bb": 54.2, "diff": 80, "steer": 13.0, "wr_f": 160, "wr_r": 130, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.12, "caster": 12.5, "tips": "Focus op aero-rake."},
     "Porsche 911 GT3 R (992)": {"bb": 50.2, "diff": 120, "steer": 12.0, "wr_f": 190, "wr_r": 150, "f_cam": -3.8, "r_cam": -3.2, "f_toe": -0.04, "r_toe": 0.20, "caster": 13.2, "tips": "Motor achterin; pas op voor lift-off oversteer."},
     "BMW M4 GT3": {"bb": 57.5, "diff": 40, "steer": 14.0, "wr_f": 150, "wr_r": 120, "f_cam": -3.2, "r_cam": -2.8, "f_toe": 0.05, "r_toe": 0.10, "caster": 11.8, "tips": "Stabiel over curbs."},
     "Lamborghini EVO2": {"bb": 55.2, "diff": 90, "steer": 13.0, "wr_f": 165, "wr_r": 135, "f_cam": -3.6, "r_cam": -3.1, "f_toe": 0.06, "r_toe": 0.14, "caster": 12.8, "tips": "Veel mechanische grip."},
-    "McLaren 720S EVO": {"bb": 53.2, "diff": 70, "steer": 13.0, "wr_f": 155, "wr_r": 125, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.10, "caster": 12.0, "tips": "Houd de rijhoogte stabiel."},
+    "McLaren 720S EVO": {"bb": 53.2, "diff": 70, "steer": 13.0, "wr_f": 155, "wr_r": 125, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.10, "caster": 12.0, "tips": "Zeer aero-gevoelig."},
     "Mercedes AMG EVO": {"bb": 56.8, "diff": 65, "steer": 14.0, "wr_f": 170, "wr_r": 140, "f_cam": -3.4, "r_cam": -2.9, "f_toe": 0.07, "r_toe": 0.12, "caster": 13.5, "tips": "Focus op tractie."},
-    "Audi R8 EVO II": {"bb": 54.0, "diff": 110, "steer": 13.0, "wr_f": 160, "wr_r": 130, "f_cam": -3.7, "r_cam": -3.1, "f_toe": 0.06, "r_toe": 0.11, "caster": 12.4, "tips": "Nerveus bij remmen."},
-    "Aston Martin EVO": {"bb": 56.2, "diff": 55, "steer": 14.0, "wr_f": 155, "wr_r": 125, "f_cam": -3.3, "r_cam": -2.8, "f_toe": 0.06, "r_toe": 0.10, "caster": 12.2, "tips": "Zeer stabiel."},
+    "Audi R8 EVO II": {"bb": 54.0, "diff": 110, "steer": 13.0, "wr_f": 160, "wr_r": 130, "f_cam": -3.7, "r_cam": -3.1, "f_toe": 0.06, "r_toe": 0.11, "caster": 12.4, "tips": "Snel maar veeleisend."},
+    "Aston Martin EVO": {"bb": 56.2, "diff": 55, "steer": 14.0, "wr_f": 155, "wr_r": 125, "f_cam": -3.3, "r_cam": -2.8, "f_toe": 0.06, "r_toe": 0.10, "caster": 12.2, "tips": "Zeer vergevingsgezind."},
     "Ford Mustang GT3": {"bb": 57.0, "diff": 50, "steer": 14.0, "wr_f": 160, "wr_r": 130, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.13, "caster": 12.0, "tips": "Veel koppel."},
     "Corvette Z06 GT3.R": {"bb": 54.8, "diff": 75, "steer": 13.0, "wr_f": 160, "wr_r": 130, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.12, "caster": 12.6, "tips": "Goede balans."}
 }
@@ -74,7 +36,7 @@ if 'history' not in st.session_state:
     st.session_state['history'] = []
 
 # 3. SELECTIE
-st.title("🏎️ ACC Setup Master v9.15")
+st.title("🏎️ :red[ACC] Setup Master v9.14")
 col_a, col_c = st.columns(2)
 with col_a:
     auto = st.selectbox("🚗 Kies Auto:", list(cars_db.keys()))
@@ -96,7 +58,7 @@ else:
     psi, wing, bb_mod, arb_f, arb_r = "26.8", "11", 0.0, "4", "3"
     damp, rh_f, rh_r, spl, bduct = ["5", "10", "8", "12"], "48", "68", "0", "2"
 
-ukey = f"v915_{auto}_{circuit}".replace(" ", "_").replace("-", "")
+ukey = f"v914_{auto}_{circuit}".replace(" ", "_").replace("-", "")
 
 # 4. SIDEBAR
 st.sidebar.header("🩺 De Setup Dokter")
@@ -107,18 +69,21 @@ st.sidebar.divider()
 st.sidebar.info(f"💡 **Tip:** {car['tips']}")
 
 # 5. TABS
-tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel", "⚙️ Mechanical", "☁️ Dampers", "✈️ Aero"])
+tabs = st.tabs([":blue[🛞 Tyres]", "⚡ Electronics", "⛽ Fuel", ":violet[⚙️ Mechanical]", "☁️ Dampers", ":red[✈️ Aero]"])
 
 with tabs[0]:
+    m1, m2 = st.columns(2)
+    m1.metric("Target PSI", psi)
+    m2.metric("Caster", f"{car['caster']}°")
     tc1, tc2 = st.columns(2)
     with tc1:
-        st.write("### :blue[Front Alignment]")
+        st.write("**Front**")
         st.text_input("LF PSI", psi, key=f"lf_p_{ukey}")
         st.text_input("RF PSI", psi, key=f"rf_p_{ukey}")
         st.text_input("Front Toe", str(car["f_toe"]), key=f"f_t_{ukey}")
         st.text_input("Front Camber", str(car["f_cam"]), key=f"f_c_{ukey}")
     with tc2:
-        st.write("### :blue[Rear Alignment]")
+        st.write("**Rear**")
         st.text_input("LR PSI", psi, key=f"lr_p_{ukey}")
         st.text_input("RR PSI", psi, key=f"rr_p_{ukey}")
         st.text_input("Rear Toe", str(car["r_toe"]), key=f"r_t_{ukey}")
@@ -129,7 +94,6 @@ with tabs[1]:
     st.text_input("ABS", "3", key=f"abs_{ukey}")
 
 with tabs[2]:
-    st.write("### :green[Cooling]")
     st.text_input("Fuel (Litre)", "62", key=f"fuel_{ukey}")
     st.text_input("Brake Duct Front", bduct, key=f"bdf_{ukey}")
     st.text_input("Brake Duct Rear", bduct, key=f"bdr_{ukey}")
@@ -137,36 +101,31 @@ with tabs[2]:
 with tabs[3]:
     mc1, mc2 = st.columns(2)
     with mc1:
-        st.write("### :violet[Front Suspension]")
         st.text_input("Front ARB", arb_f, key=f"farb_{ukey}")
         st.text_input("Brake Bias (%)", str(car["bb"] + bb_mod), key=f"bb_{ukey}")
         st.text_input("Steer Ratio", str(car["steer"]), key=f"str_{ukey}")
     with mc2:
-        st.write("### :violet[Rear Suspension]")
         st.text_input("Rear ARB", arb_r, key=f"rarb_{ukey}")
         st.text_input("Preload Diff", str(car["diff"]), key=f"diff_{ukey}")
 
 with tabs[4]:
     dc1, dc2 = st.columns(2)
     with dc1:
-        st.write("### :blue[Front Dampers]")
         st.text_input("Bump LF", damp[0], key=f"blf_{ukey}")
         st.text_input("Fast Bump LF", damp[1], key=f"fblf_{ukey}")
     with dc2:
-        st.write("### :blue[Rear Dampers]")
         st.text_input("Rebound LR", damp[2], key=f"rlr_{ukey}")
         st.text_input("Fast Rebound LR", damp[3], key=f"frlr_{ukey}")
 
 with tabs[5]:
     ac1, ac2 = st.columns(2)
     with ac1:
-        st.write("### :red[Aero Front]")
-        st.text_input("Splitter", spl, key=f"spl_{ukey}")
+        st.metric("Splitter", spl)
         st.text_input("Ride Height Front", rh_f, key=f"rhf_{ukey}")
     with ac2:
-        st.write("### :red[Aero Rear]")
-        st.text_input("Rear Wing", wing, key=f"wing_{ukey}")
+        st.metric("Wing", wing)
         st.text_input("Ride Height Rear", rh_r, key=f"rhr_{ukey}")
+        st.text_input("Rear Wing", wing, key=f"wing_{ukey}")
 
 # 6. OPSLAG & EXPORT
 st.divider()
