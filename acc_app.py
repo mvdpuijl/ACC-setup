@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.31", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.32", layout="wide")
 
 # Styling v9.14 (Stealth)
 st.markdown("""<style>.stTabs [data-baseweb="tab-list"] { gap: 8px; }
@@ -31,7 +31,7 @@ circs_db = {
 if 'history' not in st.session_state: st.session_state['history'] = []
 
 # 3. SELECTIE
-st.title("🏎️ :red[ACC] Master v9.31")
+st.title("🏎️ :red[ACC] Master v9.32")
 col_a, col_c = st.columns(2)
 with col_a: auto = st.selectbox("🚗 Kies Auto:", list(cars_db.keys()))
 with col_c: 
@@ -50,8 +50,8 @@ else:
     psi, wing, bb_m, arb_f, arb_r, damp = "26.8", "11", 0.0, "4", "3", ["5", "10", "8", "12"]
     rh_f, rh_r, spl, bduct = "48", "68", "0", "2"
 
-# DE FIX VOOR REGEL 53
-uk = f"v31_{auto}_{circuit}".replace(" ", "")
+# DE HERSTELDE REGEL 53
+uk = f"v32_{auto}_{circuit}".replace(" ", "")
 
 # 4. SIDEBAR - SETUP DOKTER
 st.sidebar.header("🩺 Setup Dokter")
@@ -59,11 +59,4 @@ klacht = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur", "Overstuur", "On
 if klacht != "Geen":
     if klacht == "Onderstuur": st.sidebar.warning(f"Verlaag Front ARB naar {int(arb_f)-1}")
     elif klacht == "Overstuur": st.sidebar.warning(f"Verlaag Rear ARB naar {int(arb_r)-1}")
-    elif klacht == "Onrustig over curbs": st.sidebar.warning("Verhoog Rijhoogte +2mm")
-st.sidebar.info(f"💡 Tip: {car['tips']}")
-
-# 5. TABS
-tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel", "⚙️ Mechanical", "☁️ Dampers", "✈️ Aero"])
-
-with tabs[1]: # ELECTRONICS
-    e1, e
+    elif klacht == "On
