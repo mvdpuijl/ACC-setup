@@ -2,13 +2,13 @@ import streamlit as st
 import pandas as pd
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.25", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.26", layout="wide")
 
-# Styling v9.14
+# Styling v9.14 (Stealth)
 st.markdown("""<style>.stTabs [data-baseweb="tab-list"] { gap: 8px; }
 .stTabs [aria-selected="true"] { background-color: #ff4b4b !important; color: white !important; }</style>""", unsafe_allow_html=True)
 
-# 2. DATABASE (v9.14)
+# 2. DATABASE
 cars_db = {
     "Ferrari 296 GT3": {"bb": 54.2, "diff": 80, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.12, "caster": 12.5, "tips": "Aero-rake focus."},
     "Porsche 911 GT3 R (992)": {"bb": 50.2, "diff": 120, "steer": 12.0, "f_cam": -3.8, "r_cam": -3.2, "f_toe": -0.04, "r_toe": 0.20, "caster": 13.2, "tips": "Beheer lift-off."},
@@ -31,14 +31,13 @@ circuits_db = {
 if 'history' not in st.session_state: st.session_state['history'] = []
 
 # 3. SELECTIE
-st.title("🏎️ :red[ACC] Master v9.25")
+st.title("🏎️ :red[ACC] Master v9.26")
 col_a, col_c = st.columns(2)
 with col_a: auto = st.selectbox("🚗 Auto:", list(cars_db.keys()))
 with col_c: 
     clist = sorted([c for sub in circuits_db.values() for c in sub])
     circuit = st.selectbox("📍 Circuit:", clist)
 
-# ENGINEER LOGICA
 car = cars_db[auto]
 ctype = next((k for k, v in circuits_db.items() if circuit in v), "High Downforce")
 if ctype == "Low Downforce":
@@ -47,71 +46,85 @@ if ctype == "Low Downforce":
 elif ctype == "Street/Bumpy":
     psi, wing, bb_mod, arb_f, arb_r, damp = "26.6", "8", -0.5, "3", "2", ["8", "15", "6", "10"]
     rh_f, rh_r, spl, bduct = "52", "75", "2", "3"
-else: # High Downforce
+else:
     psi, wing, bb_mod, arb_f, arb_r, damp = "26.8", "11", 0.0, "4", "3", ["5", "10", "8", "12"]
     rh_f, rh_r, spl, bduct = "48", "68", "0", "2"
 
-ukey = f"v925_{auto}_{circuit}".replace(" ", "_")
-
-# 4. SIDEBAR
-st.sidebar.header("🩺 Dokter")
-klacht = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur", "Overstuur"], key=f"dr_{ukey}")
-st.sidebar.info(f"💡 Tip: {car['tips']}")
+uk = f"v26_{auto}_{circuit}".replace(" ", "")
 
 # 5. TABS
 tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel", "⚙️ Mechanical", "☁️ Dampers", "✈️ Aero"])
 
+with tabs[1]: # ELECTRONICS
+    e1, e2 = st.columns(2)
+    with e1:
+        tc1 = st.text_input("TC1", "3", key=f"t1_{uk}")
+        tc2 = st.text_input("TC2", "3", key=f"t2_{uk}")
+    with e2:
+        abs_v = st.text_input("ABS", "3", key=f"ab_{uk}")
+        ecu = st.text_input("ECU Map", "1", key=f"ec_{uk}")
+
+with tabs[4]: # DAMPERS (UITGEBREID)
+    st.write("### :blue[Full Damper Setup]")
+    d1, d2, d3, d4 = st.columns(4)
+    with d1:
+        st.write("**LF**")
+        st.text_input("Bump", damp[0], key=f"blf_{uk}")
+        st.text_input("F-Bump", damp[1], key=f"flf_{uk}")
+        st.text_input("Reb", damp[2], key=f"rlf_{uk}")
+        st.text_input("F-Reb", damp[3], key=f"glf_{uk}")
+    with d2:
+        st.write("**RF**")
+        st.text_input("Bump", damp[0], key=f"brf_{uk}")
+        st.text_input("F-Bump", damp[1], key=f"frf_{uk}")
+        st.text_input("Reb", damp[2], key=f"rrf_{uk}")
+        st.text_input("F-Reb", damp[3], key=f"grf_{uk}")
+    with d3:
+        st.write("**LR**")
+        st.text_input("Bump", damp[0], key=f"blr_{uk}")
+        st.text_input("F-Bump", damp[1], key=f"flr_{uk}")
+        st.text_input("Reb", damp[2], key=f"rlr_{uk}")
+        st.text_input("F-Reb", damp[3], key=f"glr_{uk}")
+    with d4:
+        st.write("**RR**")
+        st.text_input("Bump", damp[0], key=f"brr_{uk}")
+        st.text_input("F-Bump", damp[1], key=f"frr_{uk}")
+        st.text_input("Reb", damp[2], key=f"rrr_{uk}")
+        st.text_input("F-Reb", damp[3], key=f"grr_{uk}")
+
 with tabs[0]: # TYRES
     c1, c2 = st.columns(2)
     with c1:
-        st.text_input("LF PSI", psi, key=f"lf_{ukey}")
-        st.text_input("RF PSI", psi, key=f"rf_{ukey}")
-        st.text_input("F-Camber", str(car["f_cam"]), key=f"fc_{ukey}")
+        st.text_input("LF PSI", psi, key=f"lp_{uk}")
+        st.text_input("RF PSI", psi, key=f"rp_{uk}")
+        st.text_input("F-Cam", str(car["f_cam"]), key=f"fc_{uk}")
     with c2:
-        st.text_input("LR PSI", psi, key=f"lr_{ukey}")
-        st.text_input("RR PSI", psi, key=f"rr_{ukey}")
-        st.text_input("R-Camber", str(car["r_cam"]), key=f"rc_{ukey}")
-
-with tabs[1]: # ELECTRONICS (TC2 & ECU Map toegevoegd)
-    e1, e2 = st.columns(2)
-    with e1:
-        tc1 = st.text_input("TC1", "3", key=f"tc1_{ukey}")
-        tc2 = st.text_input("TC2", "3", key=f"tc2_{ukey}")
-    with e2:
-        abs_v = st.text_input("ABS", "3", key=f"abs_{ukey}")
-        ecu = st.text_input("ECU Map", "1", key=f"ecu_{ukey}")
+        st.text_input("LR PSI", psi, key=f"lr_{uk}")
+        st.text_input("RR PSI", psi, key=f"rr_{uk}")
+        st.text_input("R-Cam", str(car["r_cam"]), key=f"rc_{uk}")
 
 with tabs[2]: # FUEL
-    st.text_input("Fuel", "62", key=f"f_{ukey}")
-    st.text_input("Brake Duct Front", bduct, key=f"bdf_{ukey}")
-    st.text_input("Brake Duct Rear", bduct, key=f"bdr_{ukey}")
+    st.text_input("Fuel", "62", key=f"f_{uk}")
+    st.text_input("B-Duct F", bduct, key=f"df_{uk}")
+    st.text_input("B-Duct R", bduct, key=f"dr_{uk}")
 
 with tabs[3]: # MECHANICAL
     m1, m2 = st.columns(2)
     with m1:
-        st.text_input("Front ARB", arb_f, key=f"fa_{ukey}")
-        st.text_input("Brake Bias", str(car["bb"] + bb_mod), key=f"bb_{ukey}")
+        st.text_input("F-ARB", arb_f, key=f"fa_{uk}")
+        st.text_input("BB", str(car["bb"] + bb_mod), key=f"bb_{uk}")
     with m2:
-        st.text_input("Rear ARB", arb_r, key=f"ra_{ukey}")
-        st.text_input("Steer Ratio", str(car["steer"]), key=f"st_{ukey}")
-
-with tabs[4]: # DAMPERS
-    d1, d2 = st.columns(2)
-    with d1:
-        st.text_input("Bump LF", damp[0], key=f"blf_{ukey}")
-        st.text_input("Fast Bump LF", damp[1], key=f"fblf_{ukey}")
-    with d2:
-        st.text_input("Rebound LR", damp[2], key=f"rlr_{ukey}")
-        st.text_input("Fast Rebound LR", damp[3], key=f"frlr_{ukey}")
+        st.text_input("R-ARB", arb_r, key=f"ra_{uk}")
+        st.text_input("Steer", str(car["steer"]), key=f"st_{uk}")
 
 with tabs[5]: # AERO
     a1, a2 = st.columns(2)
     with a1:
-        st.text_input("RH Front", rh_f, key=f"rhf_{ukey}")
-        st.text_input("Splitter", spl, key=f"spl_{ukey}")
+        st.text_input("RH F", rh_f, key=f"hf_{uk}")
+        st.text_input("Splitt", spl, key=f"sp_{uk}")
     with a2:
-        st.text_input("RH Rear", rh_r, key=f"rhr_{ukey}")
-        st.text_input("Wing", wing, key=f"w_{ukey}")
+        st.text_input("RH R", rh_r, key=f"hr_{uk}")
+        st.text_input("Wing", wing, key=f"w_{uk}")
 
 # 6. OPSLAG
 st.divider()
@@ -121,5 +134,5 @@ if st.button("💾 Sla Setup op"):
 
 if st.session_state['history']:
     df = pd.DataFrame(st.session_state['history'])
-    st.download_button("📥 Download CSV", data=df.to_csv(index=False).encode('utf-8'), file_name='acc.csv')
+    st.download_button("📥 CSV", data=df.to_csv(index=False).encode('utf-8'), file_name='acc.csv')
     st.table(df)
