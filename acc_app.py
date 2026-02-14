@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.22", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.23", layout="wide")
 
-# THEME CSS (Exacte v9.19 Stealth Styling)
+# THEME CSS
 st.markdown("""
     <style>
     .stApp { background-color: #000000 !important; color: #FFFFFF !important; }
@@ -25,18 +25,18 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 2. DATABASE (v9.11-v9.19)
+# 2. DATABASE
 cars_db = {
-    "Ferrari 296 GT3": {"bb": 54.2, "diff": 80, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.12, "caster": 12.5, "tips": "Focus op aero-rake."},
-    "Porsche 911 GT3 R (992)": {"bb": 50.2, "diff": 120, "steer": 12.0, "f_cam": -3.8, "r_cam": -3.2, "f_toe": -0.04, "r_toe": 0.20, "caster": 13.2, "tips": "Motor achterin; beheer lift-off."},
-    "BMW M4 GT3": {"bb": 57.5, "diff": 40, "steer": 14.0, "f_cam": -3.2, "r_cam": -2.8, "f_toe": 0.05, "r_toe": 0.10, "caster": 11.8, "tips": "Sterk over curbs."},
-    "Lamborghini EVO2": {"bb": 55.2, "diff": 90, "steer": 13.0, "f_cam": -3.6, "r_cam": -3.1, "f_toe": 0.06, "r_toe": 0.14, "caster": 12.8, "tips": "Veel mechanische grip."},
-    "McLaren 720S EVO": {"bb": 53.2, "diff": 70, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.10, "caster": 12.0, "tips": "Aero-gevoelig."},
-    "Mercedes AMG EVO": {"bb": 56.8, "diff": 65, "steer": 14.0, "f_cam": -3.4, "r_cam": -2.9, "f_toe": 0.07, "r_toe": 0.12, "caster": 13.5, "tips": "Focus op tractie."},
-    "Audi R8 EVO II": {"bb": 54.0, "diff": 110, "steer": 13.0, "f_cam": -3.7, "r_cam": -3.1, "f_toe": 0.06, "r_toe": 0.11, "caster": 12.4, "tips": "Nerveus bij remmen."},
-    "Aston Martin EVO": {"bb": 56.2, "diff": 55, "steer": 14.0, "f_cam": -3.3, "r_cam": -2.8, "f_toe": 0.06, "r_toe": 0.10, "caster": 12.2, "tips": "Zeer stabiel."},
-    "Ford Mustang GT3": {"bb": 57.0, "diff": 50, "steer": 14.0, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.13, "caster": 12.0, "tips": "Veel koppel."},
-    "Corvette Z06 GT3.R": {"bb": 54.8, "diff": 75, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.12, "caster": 12.6, "tips": "Goede balans."}
+    "Ferrari 296 GT3": {"bb": 54.2, "diff": 80, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Check aero-rake."},
+    "Porsche 911 GT3 R (992)": {"bb": 50.2, "diff": 120, "steer": 12.0, "f_cam": -3.8, "r_cam": -3.2, "tips": "Beheer lift-off."},
+    "BMW M4 GT3": {"bb": 57.5, "diff": 40, "steer": 14.0, "f_cam": -3.2, "r_cam": -2.8, "tips": "Goed op curbs."},
+    "Lamborghini EVO2": {"bb": 55.2, "diff": 90, "steer": 13.0, "f_cam": -3.6, "r_cam": -3.1, "tips": "Veel mech-grip."},
+    "McLaren 720S EVO": {"bb": 53.2, "diff": 70, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Aero-gevoelig."},
+    "Mercedes AMG EVO": {"bb": 56.8, "diff": 65, "steer": 14.0, "f_cam": -3.4, "r_cam": -2.9, "tips": "Check tractie."},
+    "Audi R8 EVO II": {"bb": 54.0, "diff": 110, "steer": 13.0, "f_cam": -3.7, "r_cam": -3.1, "tips": "Nerveus remmen."},
+    "Aston Martin EVO": {"bb": 56.2, "diff": 55, "steer": 14.0, "f_cam": -3.3, "r_cam": -2.8, "tips": "Zeer stabiel."},
+    "Ford Mustang GT3": {"bb": 57.0, "diff": 50, "steer": 14.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Veel koppel."},
+    "Corvette Z06 GT3.R": {"bb": 54.8, "diff": 75, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Goede balans."}
 }
 
 circuits_db = {
@@ -48,12 +48,12 @@ circuits_db = {
 if 'history' not in st.session_state: st.session_state['history'] = []
 
 # 3. SELECTIE
-st.title("🏎️ :red[ACC] Setup Master v9.22")
+st.title("🏎️ :red[ACC] Master v9.23")
 col_a, col_c = st.columns(2)
-with col_a: auto = st.selectbox("🚗 Kies Auto:", list(cars_db.keys()))
+with col_a: auto = st.selectbox("🚗 Auto:", list(cars_db.keys()))
 with col_c: 
-    all_circuits = sorted([c for sub in circuits_db.values() for c in sub])
-    circuit = st.selectbox("📍 Kies Circuit:", all_circuits)
+    circs = sorted([c for sub in circuits_db.values() for c in sub])
+    circuit = st.selectbox("📍 Circuit:", circs)
 
 # ENGINEER LOGICA
 car = cars_db[auto]
@@ -68,30 +68,42 @@ else: # High Downforce
     psi, wing, bb_mod, arb_f, arb_r, bduct = "26.8", "11", 0.0, "4", "3", "2"
     rh_f, rh_r, spl, damp = "48", "68", "0", ["5", "10", "8", "12"]
 
-ukey = f"v922_{auto}_{circuit}".replace(" ", "_")
+ukey = f"v923_{auto}_{circuit}".replace(" ", "_")
 
 # 4. SIDEBAR - DOKTER
-st.sidebar.header("🩺 De Setup Dokter")
-klacht = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur (Entry)", "Onderstuur (Exit)", "Overstuur (Entry)", "Overstuur (Exit)", "Onrustig over curbs"], key=f"dr_{ukey}")
+st.sidebar.header("🩺 Dokter")
+klacht = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur (Entry)", "Onderstuur (Exit)", "Overstuur (Entry)", "Overstuur (Exit)", "Curbs"], key=f"dr_{ukey}")
 if klacht != "Geen":
-    advice, color = "", "#FFFFFF"
-    if "Onderstuur" in klacht: advice, color = f"Advies voor {auto}: Verlaag **Front ARB** van **{arb_f}** naar **{int(arb_f)-1}**.", "#FFA500"
-    elif "Overstuur" in klacht: advice, color = f"Advies voor {auto}: Verlaag **Rear ARB** van **{arb_r}** naar **{int(arb_r)-1}**.", "#FF4B4B"
-    elif "curbs" in klacht: advice, color = f"Advies voor {auto}: Verhoog de **Rijhoogte** met **2mm** en verzacht de bumpers.", "#58A6FF"
-    st.sidebar.markdown(f"<div class='advice-box' style='border-color: {color}'>{advice}</div>", unsafe_allow_html=True)
-st.sidebar.divider()
+    adv, clr = "", "#FFFFFF"
+    if "Onderstuur" in klacht: adv, clr = f"Verlaag **F-ARB** van **{arb_f}** naar **{int(arb_f)-1}**.", "#FFA500"
+    elif "Overstuur" in klacht: adv, clr = f"Verlaag **R-ARB** van **{arb_r}** naar **{int(arb_r)-1}**.", "#FF4B4B"
+    elif "Curbs" in klacht: adv, clr = "Verhoog **Rijhoogte** +2mm en verzacht dampers.", "#58A6FF"
+    st.sidebar.markdown(f"<div class='advice-box' style='border-color: {clr}'>{adv}</div>", unsafe_allow_html=True)
 st.sidebar.info(f"💡 Tip: {car['tips']}")
 
 # 5. TABS
 tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel", "⚙️ Mechanical", "☁️ Dampers", "✈️ Aero"])
 
-with tabs[0]: # TYRES
+with tabs[0]:
     c1, c2 = st.columns(2)
     with c1:
         st.text_input("LF PSI", psi, key=f"lf_{ukey}")
-        st.text_input("RF PSI", psi, key=f"rf_{ukey}")
-        st.text_input("F-Camber", str(car['f_cam']), key=f"fc_{ukey}")
+        st.text_input("F-Cam", str(car['f_cam']), key=f"fc_{ukey}")
     with c2:
         st.text_input("LR PSI", psi, key=f"lr_{ukey}")
-        st.text_input("RR PSI", psi, key=f"rr_{ukey}")
-        st.text_input("R-Camber", str(car['r_cam']), key=f"
+        st.text_input("R-Cam", str(car['r_cam']), key=f"rc_{ukey}")
+
+with tabs[1]:
+    e1, e2 = st.columns(2)
+    with e1:
+        tc1 = st.text_input("TC1", "3", key=f"tc1_{ukey}")
+        tc2 = st.text_input("TC2", "3", key=f"tc2_{ukey}")
+    with e2:
+        abs_v = st.text_input("ABS", "3", key=f"abs_{ukey}")
+        ecu = st.text_input("ECU Map", "1", key=f"ecu_{ukey}")
+
+with tabs[3]:
+    mc1, mc2 = st.columns(2)
+    with mc1:
+        st.text_input("Front ARB", arb_f, key=f"farb_{ukey}")
+        st.text_input("Brake Bias (%)", str(car["bb"] + bb_mod),
