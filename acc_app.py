@@ -3,15 +3,10 @@ import pandas as pd
 import io
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.44", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.43", layout="wide")
 
-# Styling (Stealth v9.14 basis)
-st.markdown("""<style>
-    .stApp { background-color: #000000; color: #FFFFFF; }
-    [data-testid="stSidebar"] { background-color: #0A0C10; }
-    .stTabs [aria-selected="true"] { background-color: #ff4b4b !important; color: white !important; }
-    .stSelectbox div[data-baseweb="select"]:focus-within { border: 2px solid #FF4B4B !important; }
-</style>""", unsafe_allow_html=True)
+# Styling
+st.markdown("""<style>.stTabs [aria-selected="true"] { background-color: #ff4b4b !important; }</style>""", unsafe_allow_html=True)
 
 # 2. CORE DATABASE
 cars_db = {
@@ -29,31 +24,61 @@ cars_db = {
 
 circ_db = {
     "High": ["Spa-Francorchamps", "Zandvoort", "Kyalami", "Barcelona", "Hungaroring", "Suzuka", "Nürburgring", "Misano", "Valencia"],
-    "Low": ["Monza", "Paul Ricard", "Bathurst", "Silverstone", "Indianapolis", "Jeddah"],
-    "Bumpy": ["Zolder", "Mount Panorama", "Laguna Seca", "Imola", "Watkins Glen", "Red Bull Ring"]
+    "Low": ["Monza", "Paul Ricard", "Bathurst", "Silverstone", "Indianapolis"],
+    "Bumpy": ["Zolder", "Mount Panorama", "Laguna Seca", "Imola", "Watkins Glen"]
 }
 
-if 'history' not in st.session_state: st.session_state['history'] = []
-
-# 3. SIDEBAR MASTER EXPORT FUNCTIE
-st.sidebar.header("📊 Master Database")
-if st.sidebar.button("Genereer Master Excel"):
-    master_rows = []
+# 3. MASTER GENERATOR LOGICA
+def generate_full_master():
+    rows = []
     for c_type, c_list in circ_db.items():
         for c_name in c_list:
             for a_name, a_data in cars_db.items():
-                if c_type == "Low": p, w, bm, af, ar = "26.2", "2", 1.5, "5", "1"
-                elif c_type == "Bumpy": p, w, bm, af, ar = "26.6", "8", -0.5, "3", "2"
-                else: p, w, bm, af, ar = "26.8", "11", 0.0, "4", "3"
-                master_rows.append({
-                    "Auto": a_name, "Circuit": c_name, "Type": c_type, "PSI": p, "Wing": w,
-                    "BB": a_data["bb"] + bm, "Steer": a_data["steer"], "F-Cam": a_data["f_cam"],
-                    "F-Toe": a_data["f_toe"], "Caster": a_data["caster"], "F-ARB": af, "R-ARB": ar
+                # Bereken circuit-specifieke mods
+                if c_type == "Low":
+                    p, w, bm, af, ar, d = "26.2", "2", 1.5, "5", "1", "Soft"
+                    hf, hr, sp = "45", "62", "0"
+                elif c_type == "Bumpy":
+                    p, w, bm, af, ar, d = "26.6", "8", -0.5, "3", "2", "Very Soft"
+                    hf, hr, sp = "52", "75", "2"
+                else: # High
+                    p, w, bm, af, ar, d = "26.8", "11", 0.0, "4", "3", "Medium"
+                    hf, hr, sp = "48", "68", "0"
+                
+                rows.append({
+                    "Auto": a_name, "Circuit": c_name, "Track Type": c_type,
+                    "PSI": p, "Wing": w, "Splitter": sp, "RH Front": hf, "RH Rear": hr,
+                    "Brake Bias": a_data["bb"] + bm, "Steer Ratio": a_data["steer"],
+                    "F-ARB": af, "R-ARB": ar, "Diff Preload": a_data["bb"], # Proxy voor diff
+                    "F-Camber": a_data["f_cam"], "R-Camber": a_data["r_cam"],
+                    "F-Toe": a_data["f_toe"], "R-Toe": a_data["r_toe"], "Caster": a_data["caster"],
+                    "Damper Preset": d, "TC1": "3", "TC2": "3", "ABS": "3", "ECU Map": "1"
                 })
-    df_master = pd.DataFrame(master_rows)
+    return pd.DataFrame(rows)
+
+# 4. SIDEBAR - DE MASTER KNOP
+st.sidebar.header("📊 Master Database")
+if st.sidebar.button("Genereer Alle Combinaties"):
+    df_master = generate_full_master()
     buf = io.BytesIO()
     with pd.ExcelWriter(buf, engine='xlsxwriter') as wr:
-        df_master.to_excel(wr, index=False)
-    st.sidebar.download_button("📥 Download Alles", data=buf.getvalue(), file_name="ACC_Master.xlsx")
+        df_master.to_excel(wr, index=False, sheet_name='ACC_Master_Setups')
+    
+    st.sidebar.download_button(
+        label="📥 Download Master Excel",
+        data=buf.getvalue(),
+        file_name="ACC_Master_Database_Full.xlsx",
+        mime="application/vnd.ms-excel"
+    )
+    st.sidebar.success(f"Gereed: {len(df_master)} setups gegenereerd!")
 
-# 4. HO
+# 5. REGULIERE INTERFACE (Individuele Selectie)
+st.title("🏎️ ACC Setup Master v9.43")
+col_a, col_c = st.columns(2)
+with col_a: auto = st.selectbox("🚗 Kies Auto:", list(cars_db.keys()))
+with col_c: 
+    all_c = sorted([c for sub in circ_db.values() for c in sub])
+    circuit = st.selectbox("📍 Kies Circuit:", all_c)
+
+# (De rest van de interface voor handmatige aanpassingen blijft zoals in v9.41/9.42)
+st.info("Gebruik de sidebar om de volledige database in één keer te downloaden.")
