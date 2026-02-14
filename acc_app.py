@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
+import io
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.36", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.37", layout="wide")
 
 # Styling v9.14 (Stealth)
 st.markdown("""<style>.stTabs [data-baseweb="tab-list"] { gap: 8px; }
@@ -31,7 +32,7 @@ circuits_db = {
 if 'history' not in st.session_state: st.session_state['history'] = []
 
 # 3. SELECTIE
-st.title("🏎️ ACC Master v9.36")
+st.title("🏎️ ACC Master v9.37")
 col_a, col_c = st.columns(2)
 with col_a: auto = st.selectbox("🚗 Auto:", list(cars_db.keys()))
 with col_c: 
@@ -57,12 +58,9 @@ u = f"{auto[:3]}{circuit[:3]}".replace(" ", "")
 st.sidebar.header("🩺 Setup Dokter")
 klacht = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur", "Overstuur", "Curbs"], key=f"dr_{u}")
 if klacht != "Geen":
-    if klacht == "Onderstuur":
-        st.sidebar.warning(f"Verlaag F-ARB naar {int(af)-1}")
-    elif klacht == "Overstuur":
-        st.sidebar.warning(f"Verlaag R-ARB naar {int(ar)-1}")
-    elif klacht == "Curbs":
-        st.sidebar.warning("Verhoog Rijhoogte +2mm")
+    if klacht == "Onderstuur": st.sidebar.warning(f"F-ARB naar {int(af)-1}")
+    elif klacht == "Overstuur": st.sidebar.warning(f"R-ARB naar {int(ar)-1}")
+    elif klacht == "Curbs": st.sidebar.warning("RH +2mm")
 st.sidebar.info(f"💡 Tip: {car['tips']}")
 
 # 5. TABS
@@ -71,58 +69,50 @@ tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel", "⚙️ Mechanical"
 with tabs[0]: # Tyres
     c1, c2 = st.columns(2)
     with c1:
-        st.text_input("LF PSI", psi, key=f"lp_{u}")
-        st.text_input("F-Cam", str(car["f_cam"]), key=f"fc_{u}")
+        st.text_input("LF PSI", psi, key=f"lp_{u}"); st.text_input("F-Cam", str(car["f_cam"]), key=f"fc_{u}")
     with c2:
-        st.text_input("RR PSI", psi, key=f"rp_{u}")
-        st.text_input("R-Cam", str(car["r_cam"]), key=f"rc_{u}")
+        st.text_input("RR PSI", psi, key=f"rp_{u}"); st.text_input("R-Cam", str(car["r_cam"]), key=f"rc_{u}")
 
 with tabs[1]: # Electronics
     e1, e2 = st.columns(2)
     with e1:
-        tc1 = st.text_input("TC1", "3", key=f"t1_{u}")
-        tc2 = st.text_input("TC2", "3", key=f"t2_{u}")
+        tc1 = st.text_input("TC1", "3", key=f"t1_{u}"); tc2 = st.text_input("TC2", "3", key=f"t2_{u}")
     with e2:
-        abs_v = st.text_input("ABS", "3", key=f"ab_{u}")
-        ecu = st.text_input("ECU Map", "1", key=f"ec_{u}")
+        abs_v = st.text_input("ABS", "3", key=f"ab_{u}"); ecu = st.text_input("ECU Map", "1", key=f"ec_{u}")
 
 with tabs[3]: # Mechanical
     m1, m2 = st.columns(2)
     with m1:
-        st.text_input("F-ARB", af, key=f"fa_{u}")
-        st.text_input("BB", str(car["bb"] + bb_m), key=f"bb_{u}")
+        st.text_input("F-ARB", af, key=f"fa_{u}"); st.text_input("BB", str(car["bb"] + bb_m), key=f"bb_{u}")
     with m2:
-        st.text_input("R-ARB", ar, key=f"ra_{u}")
-        st.text_input("Steer", str(car["steer"]), key=f"st_{u}")
+        st.text_input("R-ARB", ar, key=f"ra_{u}"); st.text_input("Steer", str(car["steer"]), key=f"st_{u}")
 
 with tabs[4]: # Dampers
     d1, d2, d3, d4 = st.columns(4)
-    cols = [d1, d2, d3, d4]
-    lbls = ["LF", "RF", "LR", "RR"]
+    cols, lbls = [d1, d2, d3, d4], ["LF", "RF", "LR", "RR"]
     for i in range(4):
         with cols[i]:
             st.write(f"**{lbls[i]}**")
-            st.text_input("Bump", dmp[0], key=f"b{i}_{u}")
-            st.text_input("F-Bump", dmp[1], key=f"fb{i}_{u}")
-            st.text_input("Reb", dmp[2], key=f"r{i}_{u}")
-            st.text_input("F-Reb", dmp[3], key=f"fr{i}_{u}")
+            st.text_input("B", dmp[0], key=f"b{i}_{u}"); st.text_input("FB", dmp[1], key=f"f{i}_{u}")
+            st.text_input("R", dmp[2], key=f"r{i}_{u}"); st.text_input("FR", dmp[3], key=f"g{i}_{u}")
 
 with tabs[5]: # Aero
     a1, a2 = st.columns(2)
     with a1:
-        st.text_input("RH F", hf, key=f"hf_{u}")
-        st.text_input("Splitter", spl, key=f"sp_{u}")
+        st.text_input("RH F", hf, key=f"hf_{u}"); st.text_input("Spl", spl, key=f"sp_{u}")
     with a2:
-        st.text_input("RH R", hr, key=f"hr_{u}")
-        st.text_input("Wing", wing, key=f"wi_{u}")
+        st.text_input("RH R", hr, key=f"hr_{u}"); st.text_input("Wing", wing, key=f"wi_{u}")
 
-# 6. OPSLAG
+# 6. OPSLAG & DOWNLOAD
 st.divider()
 if st.button("💾 Sla Setup op"):
-    st.session_state['history'].append({"Auto": auto, "Circuit": circuit, "TC1": tc1, "Wing": wing})
-    st.success("Setup opgeslagen!")
+    st.session_state['history'].append({"Auto": auto, "Circ": circuit, "TC1": tc1, "TC2": tc2, "ECU": ecu, "Wing": wing})
+    st.success("Opgeslagen!")
 
 if st.session_state['history']:
     df = pd.DataFrame(st.session_state['history'])
-    st.download_button("📥 CSV", data=df.to_csv(index=False).encode('utf-8'), file_name='acc.csv')
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Setups')
+    st.download_button("📥 Excel", data=output.getvalue(), file_name="acc_setups.xlsx", mime="application/vnd.ms-excel")
     st.table(df)
