@@ -3,9 +3,9 @@ import pandas as pd
 import io
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.27", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.28", layout="wide")
 
-# Styling (Stealth + Focus)
+# Styling Stealth
 st.markdown("""<style>
 .stApp { background-color: #000000 !important; color: #FFFFFF !important; }
 [data-testid="stSidebar"] { background-color: #0A0C10 !important; }
@@ -17,12 +17,12 @@ st.markdown("""<style>
 
 # 2. DATABASE
 cars_db = {
-    "Ferrari 296 GT3": {"bb": 54.2, "diff": 80, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Aero-rake focus."},
+    "Ferrari 296 GT3": {"bb": 54.2, "diff": 80, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Check aero-rake."},
     "Porsche 911 GT3 R (992)": {"bb": 50.2, "diff": 120, "steer": 12.0, "f_cam": -3.8, "r_cam": -3.2, "tips": "Beheer lift-off."},
     "BMW M4 GT3": {"bb": 57.5, "diff": 40, "steer": 14.0, "f_cam": -3.2, "r_cam": -2.8, "tips": "Sterk op curbs."},
     "Lamborghini EVO2": {"bb": 55.2, "diff": 90, "steer": 13.0, "f_cam": -3.6, "r_cam": -3.1, "tips": "Mech-grip."},
     "McLaren 720S EVO": {"bb": 53.2, "diff": 70, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Aero-gevoelig."},
-    "Mercedes AMG EVO": {"bb": 56.8, "diff": 65, "steer": 14.0, "f_cam": -3.4, "r_cam": -2.9, "tips": "Focus op tractie."},
+    "Mercedes AMG EVO": {"bb": 56.8, "diff": 65, "steer": 14.0, "f_cam": -3.4, "r_cam": -2.9, "tips": "Focus tractie."},
     "Audi R8 EVO II": {"bb": 54.0, "diff": 110, "steer": 13.0, "f_cam": -3.7, "r_cam": -3.1, "tips": "Nerveus remmen."},
     "Aston Martin EVO": {"bb": 56.2, "diff": 55, "steer": 14.0, "f_cam": -3.3, "r_cam": -2.8, "tips": "Zeer stabiel."},
     "Ford Mustang GT3": {"bb": 57.0, "diff": 50, "steer": 14.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Veel koppel."},
@@ -38,7 +38,7 @@ circs_db = {
 if 'history' not in st.session_state: st.session_state['history'] = []
 
 # 3. SELECTIE
-st.title("🏎️ :red[ACC] Master v9.27")
+st.title("🏎️ :red[ACC] Master v9.28")
 col_a, col_c = st.columns(2)
 with col_a: auto = st.selectbox("🚗 Auto:", list(cars_db.keys()))
 with col_c: 
@@ -51,38 +51,4 @@ if ctype == "Low Downforce":
     psi, wing, bb_m, arb_f, arb_r, damp = "26.2", "2", 1.5, "5", "1", ["4", "9", "7", "11"]
     rh_f, rh_r, spl, bduct = "45", "62", "0", "1"
 elif ctype == "Street/Bumpy":
-    psi, wing, bb_m, arb_f, arb_r, damp = "26.6", "8", -0.5, "3", "2", ["8", "15", "6", "10"]
-    rh_f, rh_r, spl, bduct = "52", "75", "2", "3"
-else:
-    psi, wing, bb_m, arb_f, arb_r, damp = "26.8", "11", 0.0, "4", "3", ["5", "10", "8", "12"]
-    rh_f, rh_r, spl, bduct = "48", "68", "0", "2"
-
-uk = f"v27_{auto}_{circuit}".replace(" ", "")
-
-# 4. SIDEBAR - SETUP DOKTER
-st.sidebar.header("🩺 Setup Dokter")
-klacht = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur (Entry)", "Onderstuur (Exit)", "Overstuur (Entry)", "Overstuur (Exit)", "Onrustig over curbs"], key=f"dr_{uk}")
-
-if klacht != "Geen":
-    adv, clr = "", "#FFFFFF"
-    if "Onderstuur" in klacht: adv, clr = f"Verlaag **F-ARB** naar **{int(arb_f)-1}**.", "#FFA500"
-    elif "Overstuur" in klacht: adv, clr = f"Verlaag **R-ARB** naar **{int(arb_r)-1}**.", "#FF4B4B"
-    elif "curbs" in klacht: adv, clr = "Verhoog **RH** +2mm en verzacht dampers.", "#58A6FF"
-    st.sidebar.markdown(f"<div class='advice-box' style='border-color:{clr}'>{adv}</div>", unsafe_allow_html=True)
-st.sidebar.info(f"💡 Tip: {car['tips']}")
-
-# 5. TABS
-tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel", "⚙️ Mechanical", "☁️ Dampers", "✈️ Aero"])
-
-with tabs[1]: # ELECTRONICS
-    e1, e2 = st.columns(2)
-    with e1:
-        tc1 = st.text_input("TC1", "3", key=f"t1_{uk}")
-        tc2 = st.text_input("TC2", "3", key=f"t2_{uk}")
-    with e2:
-        abs_v = st.text_input("ABS", "3", key=f"ab_{uk}")
-        ecu = st.text_input("ECU Map", "1", key=f"ec_{uk}")
-
-with tabs[4]: # DAMPERS
-    d1, d2, d3, d4 = st.columns(4)
-    for
+    psi, wing, bb_m, arb_f, arb_r, damp
