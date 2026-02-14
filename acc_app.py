@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.21", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.22", layout="wide")
 
-# THEME CSS (Behoudt de v9.19 styling: Zwart/Wit/Rood Focus)
+# THEME CSS (Exacte v9.19 Stealth Styling)
 st.markdown("""
     <style>
     .stApp { background-color: #000000 !important; color: #FFFFFF !important; }
@@ -27,16 +27,16 @@ st.markdown("""
 
 # 2. DATABASE (v9.11-v9.19)
 cars_db = {
-    "Ferrari 296 GT3": {"bb": 54.2, "diff": 80, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Focus op aero-rake."},
-    "Porsche 911 GT3 R (992)": {"bb": 50.2, "diff": 120, "steer": 12.0, "f_cam": -3.8, "r_cam": -3.2, "tips": "Motor achterin; beheer lift-off."},
-    "BMW M4 GT3": {"bb": 57.5, "diff": 40, "steer": 14.0, "f_cam": -3.2, "r_cam": -2.8, "tips": "Sterk over curbs."},
-    "Lamborghini EVO2": {"bb": 55.2, "diff": 90, "steer": 13.0, "f_cam": -3.6, "r_cam": -3.1, "tips": "Veel mechanische grip."},
-    "McLaren 720S EVO": {"bb": 53.2, "diff": 70, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Aero-gevoelig platform."},
-    "Mercedes AMG EVO": {"bb": 56.8, "diff": 65, "steer": 14.0, "f_cam": -3.4, "r_cam": -2.9, "tips": "Focus op tractie."},
-    "Audi R8 EVO II": {"bb": 54.0, "diff": 110, "steer": 13.0, "f_cam": -3.7, "r_cam": -3.1, "tips": "Nerveus bij remmen."},
-    "Aston Martin EVO": {"bb": 56.2, "diff": 55, "steer": 14.0, "f_cam": -3.3, "r_cam": -2.8, "tips": "Zeer stabiel platform."},
-    "Ford Mustang GT3": {"bb": 57.0, "diff": 50, "steer": 14.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Veel koppel."},
-    "Corvette Z06 GT3.R": {"bb": 54.8, "diff": 75, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Goede balans."}
+    "Ferrari 296 GT3": {"bb": 54.2, "diff": 80, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.12, "caster": 12.5, "tips": "Focus op aero-rake."},
+    "Porsche 911 GT3 R (992)": {"bb": 50.2, "diff": 120, "steer": 12.0, "f_cam": -3.8, "r_cam": -3.2, "f_toe": -0.04, "r_toe": 0.20, "caster": 13.2, "tips": "Motor achterin; beheer lift-off."},
+    "BMW M4 GT3": {"bb": 57.5, "diff": 40, "steer": 14.0, "f_cam": -3.2, "r_cam": -2.8, "f_toe": 0.05, "r_toe": 0.10, "caster": 11.8, "tips": "Sterk over curbs."},
+    "Lamborghini EVO2": {"bb": 55.2, "diff": 90, "steer": 13.0, "f_cam": -3.6, "r_cam": -3.1, "f_toe": 0.06, "r_toe": 0.14, "caster": 12.8, "tips": "Veel mechanische grip."},
+    "McLaren 720S EVO": {"bb": 53.2, "diff": 70, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.10, "caster": 12.0, "tips": "Aero-gevoelig."},
+    "Mercedes AMG EVO": {"bb": 56.8, "diff": 65, "steer": 14.0, "f_cam": -3.4, "r_cam": -2.9, "f_toe": 0.07, "r_toe": 0.12, "caster": 13.5, "tips": "Focus op tractie."},
+    "Audi R8 EVO II": {"bb": 54.0, "diff": 110, "steer": 13.0, "f_cam": -3.7, "r_cam": -3.1, "f_toe": 0.06, "r_toe": 0.11, "caster": 12.4, "tips": "Nerveus bij remmen."},
+    "Aston Martin EVO": {"bb": 56.2, "diff": 55, "steer": 14.0, "f_cam": -3.3, "r_cam": -2.8, "f_toe": 0.06, "r_toe": 0.10, "caster": 12.2, "tips": "Zeer stabiel."},
+    "Ford Mustang GT3": {"bb": 57.0, "diff": 50, "steer": 14.0, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.13, "caster": 12.0, "tips": "Veel koppel."},
+    "Corvette Z06 GT3.R": {"bb": 54.8, "diff": 75, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "f_toe": 0.06, "r_toe": 0.12, "caster": 12.6, "tips": "Goede balans."}
 }
 
 circuits_db = {
@@ -48,7 +48,7 @@ circuits_db = {
 if 'history' not in st.session_state: st.session_state['history'] = []
 
 # 3. SELECTIE
-st.title("🏎️ :red[ACC] Setup Master v9.21")
+st.title("🏎️ :red[ACC] Setup Master v9.22")
 col_a, col_c = st.columns(2)
 with col_a: auto = st.selectbox("🚗 Kies Auto:", list(cars_db.keys()))
 with col_c: 
@@ -68,7 +68,7 @@ else: # High Downforce
     psi, wing, bb_mod, arb_f, arb_r, bduct = "26.8", "11", 0.0, "4", "3", "2"
     rh_f, rh_r, spl, damp = "48", "68", "0", ["5", "10", "8", "12"]
 
-ukey = f"v921_{auto}_{circuit}".replace(" ", "_")
+ukey = f"v922_{auto}_{circuit}".replace(" ", "_")
 
 # 4. SIDEBAR - DOKTER
 st.sidebar.header("🩺 De Setup Dokter")
@@ -82,7 +82,7 @@ if klacht != "Geen":
 st.sidebar.divider()
 st.sidebar.info(f"💡 Tip: {car['tips']}")
 
-# 5. TABS (Alles hersteld naar v9.19)
+# 5. TABS
 tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel", "⚙️ Mechanical", "☁️ Dampers", "✈️ Aero"])
 
 with tabs[0]: # TYRES
@@ -94,13 +94,4 @@ with tabs[0]: # TYRES
     with c2:
         st.text_input("LR PSI", psi, key=f"lr_{ukey}")
         st.text_input("RR PSI", psi, key=f"rr_{ukey}")
-        st.text_input("R-Camber", str(car['r_cam']), key=f"rc_{ukey}")
-
-with tabs[1]: # ELECTRONICS (TC2 & ECUmap toegevoegd)
-    e1, e2 = st.columns(2)
-    with e1:
-        tc1 = st.text_input("TC1", "3", key=f"tc1_{ukey}")
-        tc2 = st.text_input("TC2", "3", key=f"tc2_{ukey}")
-    with e2:
-        abs_v = st.text_input("ABS", "3", key=f"abs_{ukey}")
-        ecumap = st.text_input("ECU Map", "1", key=f"ecu_{uk
+        st.text_input("R-Camber", str(car['r_cam']), key=f"
