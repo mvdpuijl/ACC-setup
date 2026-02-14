@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.33", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.34", layout="wide")
 
-# Styling v9.14 (Stealth)
+# Styling v9.14 Stealth
 st.markdown("""<style>.stTabs [data-baseweb="tab-list"] { gap: 8px; }
 .stTabs [aria-selected="true"] { background-color: #ff4b4b !important; color: white !important; }</style>""", unsafe_allow_html=True)
 
@@ -15,11 +15,11 @@ cars_db = {
     "BMW M4 GT3": {"bb": 57.5, "diff": 40, "steer": 14.0, "f_cam": -3.2, "r_cam": -2.8, "tips": "Sterk op curbs."},
     "Lamborghini EVO2": {"bb": 55.2, "diff": 90, "steer": 13.0, "f_cam": -3.6, "r_cam": -3.1, "tips": "Mech-grip."},
     "McLaren 720S EVO": {"bb": 53.2, "diff": 70, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Aero-gevoelig."},
-    "Mercedes AMG EVO": {"bb": 56.8, "diff": 65, "steer": 14.0, "f_cam": -3.4, "r_cam": -2.9, "tips": "Focus op tractie."},
+    "Mercedes AMG EVO": {"bb": 56.8, "diff": 65, "steer": 14.0, "f_cam": -3.4, "r_cam": -2.9, "tips": "Tractie focus."},
     "Audi R8 EVO II": {"bb": 54.0, "diff": 110, "steer": 13.0, "f_cam": -3.7, "r_cam": -3.1, "tips": "Nerveus remmen."},
     "Aston Martin EVO": {"bb": 56.2, "diff": 55, "steer": 14.0, "f_cam": -3.3, "r_cam": -2.8, "tips": "Stabiel."},
     "Ford Mustang GT3": {"bb": 57.0, "diff": 50, "steer": 14.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Veel koppel."},
-    "Corvette Z06 GT3.R": {"bb": 54.8, "diff": 75, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Goede balans."}
+    "Corvette Z06 GT3.R": {"bb": 54.8, "diff": 75, "steer": 13.0, "f_cam": -3.5, "r_cam": -3.0, "tips": "Balans."}
 }
 
 circs_db = {
@@ -31,30 +31,30 @@ circs_db = {
 if 'history' not in st.session_state: st.session_state['history'] = []
 
 # 3. SELECTIE
-st.title("🏎️ :red[ACC] Master v9.33")
-col_a, col_c = st.columns(2)
-with col_a: auto = st.selectbox("🚗 Auto:", list(cars_db.keys()))
-with col_c: 
+st.title("🏎️ ACC Master v9.34")
+c_a, c_c = st.columns(2)
+with c_a: auto = st.selectbox("🚗 Auto:", list(cars_db.keys()))
+with c_c: 
     cl = sorted([c for sub in circs_db.values() for c in sub])
     circuit = st.selectbox("📍 Circuit:", cl)
 
 car = cars_db[auto]
 ctype = next((k for k, v in circs_db.items() if circuit in v), "High Downforce")
 if ctype == "Low Downforce":
-    psi, wing, bb_m, arb_f, arb_r, damp = "26.2", "2", 1.5, "5", "1", ["4", "9", "7", "11"]
+    psi, wing, bb_m, arb_f, arb_r, dmp = "26.2", "2", 1.5, "5", "1", ["4", "9", "7", "11"]
     rh_f, rh_r, spl, bduct = "45", "62", "0", "1"
 elif ctype == "Street/Bumpy":
-    psi, wing, bb_m, arb_f, arb_r, damp = "26.6", "8", -0.5, "3", "2", ["8", "15", "6", "10"]
+    psi, wing, bb_m, arb_f, arb_r, dmp = "26.6", "8", -0.5, "3", "2", ["8", "15", "6", "10"]
     rh_f, rh_r, spl, bduct = "52", "75", "2", "3"
 else:
-    psi, wing, bb_m, arb_f, arb_r, damp = "26.8", "11", 0.0, "4", "3", ["5", "10", "8", "12"]
+    psi, wing, bb_m, arb_f, arb_r, dmp = "26.8", "11", 0.0, "4", "3", ["5", "10", "8", "12"]
     rh_f, rh_r, spl, bduct = "48", "68", "0", "2"
 
-uk = f"v33_{auto}_{circuit}".replace(" ", "")
+u = f"{auto}_{circuit}".replace(" ", "")
 
-# 4. SIDEBAR - SETUP DOKTER (Compacte logica tegen afbreken)
+# 4. SIDEBAR - DOKTER
 st.sidebar.header("🩺 Dokter")
-kl = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur", "Overstuur", "Curbs"], key=f"dr_{uk}")
+kl = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur", "Overstuur", "Curbs"], key=f"d_{u}")
 if kl != "Geen":
     if kl == "Onderstuur": st.sidebar.warning(f"F-ARB naar {int(arb_f)-1}")
     elif kl == "Overstuur": st.sidebar.warning(f"R-ARB naar {int(arb_r)-1}")
@@ -62,24 +62,46 @@ if kl != "Geen":
 st.sidebar.info(f"💡 Tip: {car['tips']}")
 
 # 5. TABS
-tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel", "⚙️ Mechanical", "☁️ Dampers", "✈️ Aero"])
+t = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel", "⚙️ Mechanical", "☁️ Dampers", "✈️ Aero"])
 
-with tabs[1]: # Electronics
+with t[0]: # Tyres
+    c1, c2 = st.columns(2)
+    with c1:
+        st.text_input("LF PSI", psi, key=f"lp_{u}"); st.text_input("F-Cam", str(car["f_cam"]), key=f"fc_{u}")
+    with c2:
+        st.text_input("RR PSI", psi, key=f"rp_{u}"); st.text_input("R-Cam", str(car["r_cam"]), key=f"rc_{u}")
+
+with t[1]: # Electronics
     e1, e2 = st.columns(2)
     with e1:
-        tc1 = st.text_input("TC1", "3", key=f"t1_{uk}")
-        tc2 = st.text_input("TC2", "3", key=f"t2_{uk}")
+        tc1 = st.text_input("TC1", "3", key=f"t1_{u}"); tc2 = st.text_input("TC2", "3", key=f"t2_{u}")
     with e2:
-        abs_v = st.text_input("ABS", "3", key=f"ab_{uk}")
-        ecu = st.text_input("ECU", "1", key=f"ec_{uk}")
+        abs_v = st.text_input("ABS", "3", key=f"ab_{u}"); ecu = st.text_input("ECU", "1", key=f"ec_{u}")
 
-with tabs[4]: # Dampers
-    d1, d2, d3, d4 = st.columns(4)
-    cols, lbls = [d1, d2, d3, d4], ["LF", "RF", "LR", "RR"]
-    for i in range(4):
-        with cols[i]:
-            st.write(f"**{lbls[i]}**")
-            st.text_input("Bump", damp[0], key=f"b{lbls[i]}_{uk}")
-            st.text_input("F-B", damp[1], key=f"f{lbls[i]}_{uk}")
-            st.text_input("Reb", damp[2], key=f"r{lbls[i]}_{uk}")
-            st.text_input("F-R", damp
+with t[2]: # Fuel
+    st.text_input("Fuel", "62", key=f"f_{u}"); st.text_input("B-Duct F", bduct, key=f"df_{u}"); st.text_input("B-Duct R", bduct, key=f"dr_{u}")
+
+with t[3]: # Mechanical
+    m1, m2 = st.columns(2)
+    with m1:
+        st.text_input("F-ARB", arb_f, key=f"fa_{u}"); st.text_input("BB", str(car["bb"] + bb_m), key=f"bb_{u}")
+    with m2:
+        st.text_input("R-ARB", arb_r, key=f"ra_{u}"); st.text_input("Steer", str(car["steer"]), key=f"st_{u}")
+
+with t[4]: # Dampers (Compact Loop)
+    cols = st.columns(4)
+    labels = ["LF", "RF", "LR", "RR"]
+    for i, col in enumerate(cols):
+        with col:
+            st.write(f"**{labels[i]}**")
+            st.text_input("B", dmp[0], key=f"b{i}_{u}")
+            st.text_input("FB", dmp[1], key=f"fb{i}_{u}")
+            st.text_input("R", dmp[2], key=f"r{i}_{u}")
+            st.text_input("FR", dmp[3], key=f"fr{i}_{u}")
+
+with t[5]: # Aero
+    a1, a2 = st.columns(2)
+    with a1:
+        st.text_input("RH F", rh_f, key=f"hf_{u}"); st.text_input("Split", spl, key=f"sp_{u}")
+    with a2:
+        st.text_input("RH R", rh_r, key=f"hr_{u}"); st.text_input("Wing",
