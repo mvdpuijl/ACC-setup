@@ -3,7 +3,7 @@ import pandas as pd
 import io
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.49", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.50", layout="wide")
 
 # Styling: EXACTE v9.40 Grayscale Stealth
 st.markdown("""<style>
@@ -53,33 +53,4 @@ if st.sidebar.button("Genereer Alle Combinaties"):
     df_bulk = pd.DataFrame(rows)
     buf = io.BytesIO()
     with pd.ExcelWriter(buf, engine='xlsxwriter') as wr:
-        df_bulk.to_excel(wr, index=False)
-    st.sidebar.download_button("Download Master Excel", data=buf.getvalue(), file_name="ACC_Master.xlsx")
-
-# 4. INTERFACE
-st.title("ACC Master v9.49")
-ca, cc = st.columns(2)
-auto = ca.selectbox("Auto:", list(cars_db.keys()))
-alist = sorted([c for sub in circ_db.values() for c in sub])
-circuit = cc.selectbox("Circuit:", alist)
-
-car, ctype = cars_db[auto], next((k for k, v in circ_db.items() if circuit in v), "High")
-if ctype == "Low":
-    psi, wing, bb_m, af, ar, dmp = "26.2", "2", 1.5, "5", "1", ["4", "9", "7", "11"]
-    hf, hr, spl, bd = "45", "62", "0", "1"
-elif ctype == "Bumpy":
-    psi, wing, bb_m, af, ar, dmp = "26.6", "8", -0.5, "3", "2", ["8", "15", "6", "10"]
-    hf, hr, spl, bd = "52", "75", "2", "3"
-else:
-    psi, wing, bb_m, af, ar, dmp = "26.8", "11", 0.0, "4", "3", ["5", "10", "8", "12"]
-    hf, hr, spl, bd = "48", "68", "0", "2"
-
-uk = f"{auto}_{circuit}".replace(" ", "")
-
-# SIDEBAR DOKTER
-st.sidebar.divider()
-st.sidebar.header("Setup Dokter")
-kl = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur", "Overstuur", "Curbs"], key=f"dr_{uk}")
-if kl != "Geen":
-    if kl == "Onderstuur": st.sidebar.info(f"F-ARB naar {int(af)-1}")
-    elif kl == "Overstuur": st.sidebar.info(f"R-ARB naar {int
+        df_bulk.to_
