@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # 1. Pagina Configuratie
-st.set_page_config(page_title="ACC Setup Master v9.32", layout="wide")
+st.set_page_config(page_title="ACC Setup Master v9.33", layout="wide")
 
 # Styling v9.14 (Stealth)
 st.markdown("""<style>.stTabs [data-baseweb="tab-list"] { gap: 8px; }
@@ -31,12 +31,12 @@ circs_db = {
 if 'history' not in st.session_state: st.session_state['history'] = []
 
 # 3. SELECTIE
-st.title("🏎️ :red[ACC] Master v9.32")
+st.title("🏎️ :red[ACC] Master v9.33")
 col_a, col_c = st.columns(2)
-with col_a: auto = st.selectbox("🚗 Kies Auto:", list(cars_db.keys()))
+with col_a: auto = st.selectbox("🚗 Auto:", list(cars_db.keys()))
 with col_c: 
-    clist = sorted([c for sub in circs_db.values() for c in sub])
-    circuit = st.selectbox("📍 Kies Circuit:", clist)
+    cl = sorted([c for sub in circs_db.values() for c in sub])
+    circuit = st.selectbox("📍 Circuit:", cl)
 
 car = cars_db[auto]
 ctype = next((k for k, v in circs_db.items() if circuit in v), "High Downforce")
@@ -50,13 +50,36 @@ else:
     psi, wing, bb_m, arb_f, arb_r, damp = "26.8", "11", 0.0, "4", "3", ["5", "10", "8", "12"]
     rh_f, rh_r, spl, bduct = "48", "68", "0", "2"
 
-# DE HERSTELDE REGEL 53
-uk = f"v32_{auto}_{circuit}".replace(" ", "")
+uk = f"v33_{auto}_{circuit}".replace(" ", "")
 
-# 4. SIDEBAR - SETUP DOKTER
-st.sidebar.header("🩺 Setup Dokter")
-klacht = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur", "Overstuur", "Onrustig over curbs"], key=f"dr_{uk}")
-if klacht != "Geen":
-    if klacht == "Onderstuur": st.sidebar.warning(f"Verlaag Front ARB naar {int(arb_f)-1}")
-    elif klacht == "Overstuur": st.sidebar.warning(f"Verlaag Rear ARB naar {int(arb_r)-1}")
-    elif klacht == "On
+# 4. SIDEBAR - SETUP DOKTER (Compacte logica tegen afbreken)
+st.sidebar.header("🩺 Dokter")
+kl = st.sidebar.selectbox("Klacht?", ["Geen", "Onderstuur", "Overstuur", "Curbs"], key=f"dr_{uk}")
+if kl != "Geen":
+    if kl == "Onderstuur": st.sidebar.warning(f"F-ARB naar {int(arb_f)-1}")
+    elif kl == "Overstuur": st.sidebar.warning(f"R-ARB naar {int(arb_r)-1}")
+    elif kl == "Curbs": st.sidebar.warning("RH +2mm")
+st.sidebar.info(f"💡 Tip: {car['tips']}")
+
+# 5. TABS
+tabs = st.tabs(["🛞 Tyres", "⚡ Electronics", "⛽ Fuel", "⚙️ Mechanical", "☁️ Dampers", "✈️ Aero"])
+
+with tabs[1]: # Electronics
+    e1, e2 = st.columns(2)
+    with e1:
+        tc1 = st.text_input("TC1", "3", key=f"t1_{uk}")
+        tc2 = st.text_input("TC2", "3", key=f"t2_{uk}")
+    with e2:
+        abs_v = st.text_input("ABS", "3", key=f"ab_{uk}")
+        ecu = st.text_input("ECU", "1", key=f"ec_{uk}")
+
+with tabs[4]: # Dampers
+    d1, d2, d3, d4 = st.columns(4)
+    cols, lbls = [d1, d2, d3, d4], ["LF", "RF", "LR", "RR"]
+    for i in range(4):
+        with cols[i]:
+            st.write(f"**{lbls[i]}**")
+            st.text_input("Bump", damp[0], key=f"b{lbls[i]}_{uk}")
+            st.text_input("F-B", damp[1], key=f"f{lbls[i]}_{uk}")
+            st.text_input("Reb", damp[2], key=f"r{lbls[i]}_{uk}")
+            st.text_input("F-R", damp
